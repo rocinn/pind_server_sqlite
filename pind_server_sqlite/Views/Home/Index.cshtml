@@ -96,13 +96,13 @@
                     nodeNote.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
                     e.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
                 } else {
-                    showModel(data.message || '操作失败');
+                    showToast(data.message || '操作失败');
                 }
             });
         } else {
             let _content = document.getElementById("input").innerText;
             if (!_content) {
-                showModel('未填写内容');
+                showToast('未填写内容');
                 return;
             }
             $.post("/note/add", {
@@ -115,7 +115,7 @@
                     // TODO
                     location.reload();
                 } else {
-                    showModel(data.message || '操作失败');
+                    showToast(data.message || '操作失败');
                 }
             });
         }
@@ -164,7 +164,7 @@
                     nodenotelist.appendChild(div);
                 }
             } else {
-                showModel(data.message || '操作失败');
+                showToast(data.message || '操作失败');
             }
         });
     }
@@ -205,6 +205,18 @@
 
         var _myModal = new bootstrap.Modal(nodeModel);
         _myModal.show();
+    }
+
+    function showToast(msg) {
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+        var toastList = toastElList.map(function (toastEl) {
+            toastEl.getElementsByClassName("toast-body")[0].innerText = msg;
+            return new bootstrap.Toast(toastEl, { delay: 2000 });
+        })
+
+        for (var i = 0; i < toastList.length; i++) {
+            toastList[i].show();
+        }
     }
 
 </script>
