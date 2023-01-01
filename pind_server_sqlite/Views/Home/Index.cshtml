@@ -81,7 +81,13 @@
             let nodeReEdit = e.parentNode.parentNode;
             let nodeNote = nodeReEdit.parentNode;
             let nodeContentP = nodeNote.getElementsByClassName("contentP")[0];
+            let nodeOrInput = nodeContentP.getElementsByClassName("content")[0];
             let nodeReInput = nodeReEdit.getElementsByClassName("input")[0];
+            if (nodeOrInput.innerText == nodeReInput.innerText) {
+                nodeReEdit.style.display = "none";
+                nodeContentP.style.display = "block";
+                return;
+            }
 
             $.post("/note/upd", {
                 fid: fid,
@@ -91,7 +97,7 @@
                 if (data && data.code == 1) {
                     nodeReEdit.style.display = "none";
                     nodeContentP.style.display = "block";
-                    nodeContentP.getElementsByClassName("content")[0].innerHTML = nodeReInput.innerHTML;
+                    nodeOrInput.innerHTML = nodeReInput.innerHTML;
                     nodeNote.setAttribute("data-originContent", nodeReInput.innerText);
                     nodeNote.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
                     e.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
@@ -220,6 +226,8 @@
             node.style.setProperty("top", "0px");
         }
         node.style.setProperty("position", "absolute");
+        node.style.setProperty("z-index", "999");
+        node.style.setProperty("background-color", "white");
         node.innerHTML = "<div class='toast-header'><strong class='me-auto'></strong><button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button> </div><div class='toast-body'>Hello, world! This is a toast message. </div>";
         node.getElementsByClassName("toast-body")[0].innerText = msg;
         ndoeToastsP.appendChild(node);
