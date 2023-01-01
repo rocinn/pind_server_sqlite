@@ -20,7 +20,6 @@ namespace pind_server_sqlite.Controllers
         public IHttpActionResult addNote(JObject obj)
         {
             Request.Properties.TryGetValue("userid", out Object userid);
-            //string userid = "1";
             string guid = obj["guid"]?.ToString();
             string content = obj["content"]?.ToString();
 
@@ -41,15 +40,17 @@ namespace pind_server_sqlite.Controllers
             Request.Properties.TryGetValue("userid", out Object userid);
             string fid = obj["fid"]?.ToString();
             string content = obj["content"]?.ToString();
+            string uTime = obj["uTime"]?.ToString();
 
             if (string.IsNullOrWhiteSpace(fid) || string.IsNullOrWhiteSpace(content))
             {
                 throw new CustomException("参数错误");
             }
 
-            SqliteHelper.GetInstance().fnUpdNote(Convert.ToInt32(userid), fid, content);
-
-            return Json(new { code = 1, data = new { } });
+            DataRow dr = SqliteHelper.GetInstance().fnUpdNote(Convert.ToInt32(userid), fid, content, uTime);
+            DataTable dt = dr.Table.Clone();
+            dt.Rows.Add(dr.ItemArray);
+            return Json(new { code = 1, data = new { arrNote = dt } });
         }
 
         [HttpGet]
@@ -57,7 +58,6 @@ namespace pind_server_sqlite.Controllers
         public IHttpActionResult getNote()
         {
             Request.Properties.TryGetValue("userid", out Object userid);
-            //string userid = "1";
             DataTable dt = SqliteHelper.GetInstance().fnGetNote(Convert.ToInt32(userid));
 
             return Json(new { code = 1, data = new { arrNote = dt } });

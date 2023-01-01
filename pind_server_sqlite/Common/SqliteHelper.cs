@@ -87,7 +87,8 @@ userid integer not null,
 guid varchar(100) not null,
 content nvarchar,
 status integer default 1,
-iTime datetime default (datetime('now', 'localtime')) );
+iTime datetime default (datetime('now', 'localtime')),
+uTime datetime default (datetime('now', 'localtime')) );
 create unique index if not exists tnote_index_guid on tnote (guid);";
                 cmd = new SQLiteCommand(sql, con, tran);
                 cmd.ExecuteNonQuery();
@@ -347,7 +348,7 @@ select last_insert_rowid();";
             }
         }
 
-        public void fnUpdNote(int userid, string fid, string content)
+        public DataRow fnUpdNote(int userid, string fid, string content, string uTime)
         {
             SQLiteConnection con = GetConnection();
             SQLiteTransaction tran = null;
@@ -373,13 +374,35 @@ select last_insert_rowid();";
                 if (drNote == null)
                     throw new CustomException("Note不存在");
 
-                sql = "update tnote set content = @content where fid=@fid";
+                if (!string.IsNullOrWhiteSpace(drNote["uTime"].ToString()))
+                {
+                    DateTime.TryParse(uTime, out DateTime ft);
+                    DateTime.TryParse(drNote["uTime"].ToString(), out DateTime dt);
+                    if (ft.ToString("yyyy-MM-dd HH:mm:ss") != dt.ToString("yyyy-MM-dd HH:mm:ss"))
+                    {
+                        throw new CustomException("Note内容已被其他终端修改，请刷新后重新修改");
+                    }
+                }
+
+                sql = "update tnote set content = @content, uTime=@uTime where fid=@fid";
                 cmd = new SQLiteCommand(sql, con, tran);
                 SetParameters(cmd, "@fid", fid);
                 SetParameters(cmd, "@content", content);
+                SetParameters(cmd, "@uTime", now);
                 cmd.ExecuteNonQuery();
 
+                sql = "select * from tnote where fid = @fid and status = 1";
+                cmd = new SQLiteCommand(sql, con, tran);
+                SetParameters(cmd, "@fid", fid);
+                DataRow dr = GetRow(cmd);
+
                 tran.Commit();
+
+                dr.Table.Columns.Add("iTimeShow");
+                dr.Table.Columns.Add("uTimeShow");
+                dr["iTimeShow"] = DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
+                dr["uTimeShow"] = DateTime.Parse(dr["uTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
+                return dr;
             }
             catch (Exception)
             {
@@ -399,9 +422,11 @@ select last_insert_rowid();";
             SetParameters(cmd, "@userid", userid);
             DataTable dt = GetDT(cmd);
             dt.Columns.Add("iTimeShow");
+            dt.Columns.Add("uTimeShow");
             foreach (DataRow dr in dt.Rows)
             {
                 dr["iTimeShow"] = DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
+                dr["uTimeShow"] = DateTime.Parse(dr["uTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
             }
 
             return dt;
