@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 
-namespace WebApplication7
+namespace pind_server_sqlite
 {
     public static class WebApiConfig
     {

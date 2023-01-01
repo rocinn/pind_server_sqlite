@@ -13,7 +13,7 @@ using log4net.Config;
 using log4net;
 using System.IO;
 
-namespace WebApplication7
+namespace pind_server_sqlite
 {
     public class Global : HttpApplication
     {
