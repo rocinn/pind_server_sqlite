@@ -1,5 +1,5 @@
 # pind_server_sqlite
-笔记工具
+web笔记工具，跨平台皆可访问
 
 开发工具 : vs2022
 
