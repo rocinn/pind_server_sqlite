@@ -208,15 +208,27 @@
     }
 
     function showToast(msg) {
-        var toastElList = [].slice.call(document.querySelectorAll('.toast'))
-        var toastList = toastElList.map(function (toastEl) {
-            toastEl.getElementsByClassName("toast-body")[0].innerText = msg;
-            return new bootstrap.Toast(toastEl, { delay: 2000 });
+        let ndoeToastsP = document.getElementById("toastsP");
+        let node = document.createElement("div");
+        node.setAttribute("class", "toast");
+        node.setAttribute("role", "alert");
+        node.setAttribute("aria-live", "assertive");
+        node.setAttribute("aria-atomic", true);
+        if (ndoeToastsP.children.length > 0) {
+            node.style.setProperty("top", ndoeToastsP.children[ndoeToastsP.children.length - 1].offsetTop + 85 + 5 + "px");
+        } else {
+            node.style.setProperty("top", "0px");
+        }
+        node.style.setProperty("position", "absolute");
+        node.innerHTML = "<div class='toast-header'><strong class='me-auto'></strong><button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button> </div><div class='toast-body'>Hello, world! This is a toast message. </div>";
+        node.getElementsByClassName("toast-body")[0].innerText = msg;
+        ndoeToastsP.appendChild(node);
+        node.addEventListener('hidden.bs.toast', function () {
+            node.parentNode.removeChild(node);
         })
 
-        for (var i = 0; i < toastList.length; i++) {
-            toastList[i].show();
-        }
+        //new bootstrap.Toast(node, { autohide: false, delay: 2000 }).show();
+        new bootstrap.Toast(node, { delay: 2000 }).show();
     }
 
 </script>
