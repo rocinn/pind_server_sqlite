@@ -13,6 +13,7 @@ using pind_server_sqlite.Common;
 namespace pind_server_sqlite.Controllers
 {
     [ApiAuthorizationFilter]
+    [ExceptionFilter]
     public class NoteController : ApiController
     {
         [HttpPost]

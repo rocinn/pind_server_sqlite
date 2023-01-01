@@ -34,6 +34,7 @@
     @*}*@
 </div>
 
+
 <script>
     var winHeight = 0;
     function findDimensions() { //函数：获取尺寸
@@ -81,6 +82,7 @@
             let nodeNote = nodeReEdit.parentNode;
             let nodeContentP = nodeNote.getElementsByClassName("contentP")[0];
             let nodeReInput = nodeReEdit.getElementsByClassName("input")[0];
+
             $.post("/note/upd", {
                 fid: fid,
                 content: nodeReInput.innerText,
@@ -94,12 +96,18 @@
                     nodeNote.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
                     e.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
                 } else {
+                    showModel(data.message || '操作失败');
                 }
             });
         } else {
+            let _content = document.getElementById("input").innerText;
+            if (!_content) {
+                showModel('未填写内容');
+                return;
+            }
             $.post("/note/add", {
                 guid: guid(),
-                content: document.getElementById("input").innerText
+                content: _content
             }, function (data, status, xhr) {
                 if (data && data.code == 1) {
                     document.getElementById("input").innerHTML = "";
@@ -107,6 +115,7 @@
                     // TODO
                     location.reload();
                 } else {
+                    showModel(data.message || '操作失败');
                 }
             });
         }
@@ -155,7 +164,7 @@
                     nodenotelist.appendChild(div);
                 }
             } else {
-
+                showModel(data.message || '操作失败');
             }
         });
     }
@@ -187,6 +196,15 @@
     function fnCancelClick(e) {
         e.parentNode.parentNode.style.display = "none";
         e.parentNode.parentNode.parentNode.getElementsByClassName("contentP")[0].style.display = "block";
+    }
+
+    function showModel(msg) {
+        let nodeModel = document.getElementById("exampleModalSm");
+        var modalBodyInput = nodeModel.querySelector('.modal-body')
+        modalBodyInput.innerText = msg || '操作失败';
+
+        var _myModal = new bootstrap.Modal(nodeModel);
+        _myModal.show();
     }
 
 </script>
