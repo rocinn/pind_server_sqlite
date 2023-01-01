@@ -1,0 +1,292 @@
+﻿
+@{
+    ViewBag.Title = "Pind";
+}
+
+<div class="editor border border-light rounded-3 bg-light">
+    <div id="input" class="input" contenteditable="true" placeholder="要记些什么呢..." spellcheck="false"></div>
+    <div class="tool">
+        <img class="selectImg" src="~/Images/bxs-image.png" />
+        <div style="flex:1"></div>
+        @*<div style="margin-right:10px; color:gray">ctrl enter</div>*@
+        <button type="button" class="btn btn-dark btnSelf" onclick="onSaveClick(this)"><img src="/Images/shandian-48.png" style="height: 25px" /></button>
+    </div>
+</div>
+<div class="d-flex justify-content-center loading" style="margin-top:10px;">
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<div id="notelist">
+    @*@foreach (System.Data.DataRow dr in (ViewBag.dtNotes as System.Data.DataTable).Rows)
+        {*@
+    <!--<div class="note border rounded-3">
+        <div class="oprator">
+            <div class="noteTime text-secondary">-->
+    @*@DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss")*@
+    <!--</div>
+    </div>
+    <div class="content">-->
+    @*@dr["content"].ToString()*@
+    <!--</div>
+    </div>-->
+    @*}*@
+</div>
+
+<script>
+    var winHeight = 0;
+    function findDimensions() { //函数：获取尺寸
+        //获取窗口高度
+        if (window.innerHeight) {
+            winHeight = window.innerHeight;
+        }
+        else if ((document.body) && (document.body.clientHeight)) {
+            winHeight = document.body.clientHeight;
+        }
+
+        //通过深入Document内部对body进行检测，获取窗口大小
+        if (document.documentElement && document.documentElement.clientHeight && document.documentElement.clientWidth) {
+            winHeight = document.documentElement.clientHeight;
+        }
+
+        var editorH = document.getElementsByClassName("editor")[0].offsetHeight;
+        var h = winHeight - 15 - editorH - 10;
+        $("#notelist").css("height", h);
+    }
+
+    findDimensions();
+
+    document.querySelector('div[contenteditable="true"]').addEventListener("paste", function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        var text = '', event = (e.originalEvent || e);
+        if (event.clipboardData && event.clipboardData.getData) {
+            text = event.clipboardData.getData('text/plain');
+        } else if (window.clipboardData && window.clipboardData.getData) {
+            text = window.clipboardData.getData('Text');
+        }
+        if (document.queryCommandSupported('insertText')) {
+            document.execCommand('insertText', false, text);
+        } else {
+            document.execCommand('paste', false, text);
+        }
+    });
+
+    function onSaveClick(e) {
+        let fid = e.getAttribute("data-fid");
+        if (fid) {
+            let nodeReEdit = e.parentNode.parentNode;
+            let nodeNote = nodeReEdit.parentNode;
+            let nodeContentP = nodeNote.getElementsByClassName("contentP")[0];
+            let nodeReInput = nodeReEdit.getElementsByClassName("input")[0];
+            $.post("/note/upd", {
+                fid: fid,
+                content: nodeReInput.innerText
+            }, function (data, status, xhr) {
+                if (data && data.code == 1) {
+                    nodeReEdit.style.display = "none";
+                    nodeContentP.style.display = "block";
+                    nodeContentP.getElementsByClassName("content")[0].innerHTML = nodeReInput.innerHTML;
+                    nodeNote.setAttribute("data-originContent", nodeReInput.innerText);
+                } else {
+                }
+            });
+        } else {
+            $.post("/note/add", {
+                guid: guid(),
+                content: document.getElementById("input").innerText
+            }, function (data, status, xhr) {
+                if (data && data.code == 1) {
+                    document.getElementById("input").innerHTML = "";
+
+                    // TODO
+                    location.reload();
+                } else {
+                }
+            });
+        }
+
+    }
+
+    function guid() {
+        function S4() {
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        }
+        return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+    }
+
+    function fnGetNotes() {
+        $.get("/note/get", {}, function (data, status, xhr) {
+
+            setTimeout(function () {
+                document.getElementsByClassName("loading")[0].style.setProperty('display', 'none', 'important');
+
+            }, 800);
+
+            if (data && data.code == 1) {
+                let nodenotelist = document.getElementById("notelist");
+                for (var i in data.data.arrNote) {
+                    let note = data.data.arrNote[i];
+
+                    let div = document.createElement("div");
+                    div.setAttribute("class", "note border rounded-3");
+                    div.setAttribute("data-originContent", note["content"]);
+                    div.setAttribute("data-fid", note["fid"]);
+
+                    let str = "<div class='contentP'><div class='oprator'><div class='noteTime text-secondary'>" + note["iTimeShow"] +
+                        "</div><div style='flex:1'></div><button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)' style='padding: 3px 8px;'><img src='/Images/edit.png' style='height: 25px' /></button></div>";
+                    //"</div></div>";
+
+                    //str += "<div class='tags'><div class='tag'>tag1</div><div class='tag'>tag2</div></div>";
+                    let m = marked.parse(note["content"]);
+                    //str += ("<div class='content'>" + m.substring(0, m.length - 1) + "</div></div>");
+                    str += ("<div class='content'>" + note["content"] + "</div>");
+
+                    //let toedit = "<div><div class='input' contenteditable='true' spellcheck='false'></div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button type='button' class='btn btn-dark btnSelf' onclick='onSaveClick()'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div></div>";
+                    //div.innerHTML = str + toedit;
+                    div.innerHTML = str;
+
+                    nodenotelist.appendChild(div);
+                }
+            } else {
+
+            }
+        });
+    }
+
+    fnGetNotes();
+
+    function fntoEditClick(e) {
+        let nodeContentP = e.parentNode.parentNode;
+
+        let nodeNote = nodeContentP.parentNode;
+        let originContent = nodeNote.getAttribute("data-originContent");
+        let fid = nodeNote.getAttribute("data-fid");
+
+        let nodeReEdit = nodeNote.getElementsByClassName("reEdit")[0];
+        if (nodeReEdit) {
+            nodeReEdit.style.display = "block";
+        } else {
+            let div = document.createElement("div");
+            div.setAttribute("class", "reEdit");
+            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + originContent + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
+
+            nodeNote.appendChild(div);
+        }
+
+        nodeContentP.style.display = "none";
+    }
+
+    function fnCancelClick(e) {
+        e.parentNode.parentNode.style.display = "none";
+        e.parentNode.parentNode.parentNode.getElementsByClassName("contentP")[0].style.display = "block";
+    }
+
+</script>
+
+<style>
+   /* p {
+        margin-top: 0;
+        margin-bottom: 0rem;
+        margin-block-start: 0em;
+        margin-block-end: 0em;
+    }*/
+
+    .editor {
+        padding: 10px;
+    }
+
+    .input {
+        min-height: 60px;
+        max-height: 250px;
+        overflow-y: auto;
+        /*padding: 10px;*/
+        outline: none;
+        /*font-family: "微软雅黑";*/
+        -webkit-user-modify: read-write;
+        line-height: 22px;
+    }
+
+        .input::-webkit-scrollbar {
+            display: none;
+        }
+
+        .input:empty:before {
+            content: attr(placeholder);
+            color: #848484;
+        }
+
+        .input:focus:before {
+            color: #bdbdbd;
+        }
+
+        .input:focus:after {
+            content: none;
+        }
+
+    .tool {
+        /*height: 38px;*/
+        align-items: center;
+        display: flex;
+        position: relative;
+        /*padding-left: 10px;*/
+        /*padding-right: 10px;*/
+    }
+
+    .selectImg {
+        height: 36px;
+    }
+
+    .btnSelf {
+        padding: 3px 8px;
+    }
+
+    #notelist {
+        margin-top: 10px;
+        /*height: 800px;*/
+        overflow-y: auto;
+        flex-direction: column;
+        display: flex;
+    }
+
+        #notelist::-webkit-scrollbar {
+            display: none;
+        }
+
+    .note {
+        padding: 10px;
+        margin-bottom: 10px;
+        white-space: pre-line;
+    }
+
+    .oprator {
+        display: flex;
+        /*justify-content:center;*/
+        align-items: center;
+    }
+
+    .noteTime {
+        line-height: 25px;
+        height: 25px;
+    }
+
+    .tags {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    .tag {
+        padding: 2px 5px;
+        background-color: #f1f3f4;
+        border-radius: 5px;
+        margin-right: 5px;
+        color: #85888c;
+    }
+
+    .content {
+        overflow-wrap: break-word;
+        line-height: 22px;
+    }
+</style>

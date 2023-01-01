@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pind_server_sqlite", "pind_server_sqlite\pind_server_sqlite.csproj", "{2AA17E97-0487-4415-AAE5-2AEF1208DE33}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2AA17E97-0487-4415-AAE5-2AEF1208DE33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AA17E97-0487-4415-AAE5-2AEF1208DE33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AA17E97-0487-4415-AAE5-2AEF1208DE33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AA17E97-0487-4415-AAE5-2AEF1208DE33}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E6D015D0-156A-47AD-BF19-F60A47E8ADB3}
+	EndGlobalSection
+EndGlobal
