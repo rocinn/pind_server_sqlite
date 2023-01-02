@@ -48,7 +48,7 @@
                 },
                 error: function (res) {
                     //console.log("error", res);
-                    that.showToast(res.statusText);
+                    that.showToast(res.statusText, true);
                     reject(res)
                 }
             });
@@ -284,7 +284,7 @@
         _myModal.show();
     }
 
-    function showToast(msg) {
+    function showToast(msg, isError = false) {
         let ndoeToastsP = document.getElementById("toastsP");
         let node = document.createElement("div");
         node.setAttribute("class", "toast");
@@ -292,14 +292,21 @@
         node.setAttribute("aria-live", "assertive");
         node.setAttribute("aria-atomic", true);
         if (ndoeToastsP.children.length > 0) {
-            node.style.setProperty("top", ndoeToastsP.children[ndoeToastsP.children.length - 1].offsetTop + 85 + 5 + "px");
+            //node.style.setProperty("top", ndoeToastsP.children[ndoeToastsP.children.length - 1].offsetTop + 85 + 5 + "px");
+            node.style.setProperty("top", ndoeToastsP.children[ndoeToastsP.children.length - 1].offsetTop + 47 + 5 + "px");
         } else {
             node.style.setProperty("top", "0px");
         }
         node.style.setProperty("position", "absolute");
         node.style.setProperty("z-index", "999");
         node.style.setProperty("background-color", "white");
-        node.innerHTML = "<div class='toast-header'><strong class='me-auto'></strong><button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button> </div><div class='toast-body'>Hello, world! This is a toast message. </div>";
+        node.style.setProperty("display", "flex");
+        node.style.setProperty("align-items", "center");
+        if (isError) {
+            node.style.setProperty("color", "red");
+        }
+        //node.innerHTML = "<div class='toast-header'><strong class='me-auto'></strong><button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button> </div><div class='toast-body'>Hello, world! This is a toast message. </div>";
+        node.innerHTML = "<div class='toast-body'>Hello, world! This is a toast message.</div><button type='button' class='btn-close ms-auto me-2' data-bs-dismiss='toast' aria-label='Close'></button>";
         node.getElementsByClassName("toast-body")[0].innerText = msg;
         ndoeToastsP.appendChild(node);
         node.addEventListener('hidden.bs.toast', function () {
@@ -307,19 +314,19 @@
         })
 
         //new bootstrap.Toast(node, { autohide: false, delay: 2000 }).show();
-        new bootstrap.Toast(node, { delay: 3000 }).show();
+        new bootstrap.Toast(node, { delay: 2500 }).show();
     }
 
 </script>
 
 <style>
-    p {
-        margin-top: 0;
-        margin-bottom: 0rem;
-        margin-block-start: 0em;
-        margin-block-end: 0em;
-    }
-
+    /* p {
+            margin-top: 0;
+            margin-bottom: 0rem;
+            margin-block-start: 0em;
+            margin-block-end: 0em;
+        }
+    */
     .editor {
         padding: 10px;
     }
