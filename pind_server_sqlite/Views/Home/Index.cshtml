@@ -17,7 +17,7 @@
     @*<div style="flex:1"></div>*@
     <button class="btn btn-light btnSelf" onclick="fnonlogout()" style="margin-right:5px;"><img src="~/Images/logout.png" style="height: 25px" /></button>
     <button class="btn btn-light btnSelf" onclick="fnonrefresh(this)"><img src="~/Images/refresh.png" style="height: 25px" /></button>
-    <div class="d-flex justify-content-center loading" style="margin-left:10px">
+    <div class="d-flex justify-content-center loading" style="margin-left:10px;display:none">
         <div class="spinner-border" role="status" style="height: 25px; width: 25px"></div>
     </div>
 </div>
@@ -82,20 +82,30 @@
     m_nodelist.addEventListener('touchmove', fnnotelisttouchMove, false);
 
     function fnonlogout() {
-        request("/user/logout", "post", {}).then(res => {
+        request("/user/logout", "post", {}, true).then(res => {
             location.reload();
         }).catch(res => {
         })
     }
 
+    function fnLoading(isshow) {
+        if (isshow) {
+            document.getElementsByClassName("loading")[0].style.setProperty('display', 'block', 'important');
+        } else {
+            document.getElementsByClassName("loading")[0].style.setProperty('display', 'none', 'important');
+        }
+    }
+
     function fnonrefresh(e) {
-        document.getElementsByClassName("loading")[0].style.setProperty('display', 'block', 'important');
+        fnLoading(true);
         fnGetNotes();
     }
 
-    function request(url, method, data) {
+    function request(url, method, data, isshowloading = false, loadingtime = 0) {
         let that = this;
         return new Promise(function (resolve, reject) {
+            that.fnLoading(isshowloading);
+            let d1 = new Date();
             $.ajax({
                 type: method,
                 url: url,
@@ -107,6 +117,19 @@
                     //console.log("error", res);
                     that.showToast(res.statusText, true);
                     reject(res)
+                },
+                complete: function () {
+                    if (isshowloading) {
+                        let d2 = new Date();
+                        let cost = parseInt(d2 - d1)
+                        if (cost < loadingtime) {
+                            setTimeout(function () {
+                                that.fnLoading(false);
+                            }, loadingtime - cost);
+                        } else {
+                            that.fnLoading(false);
+                        }
+                    }
                 }
             });
         });
@@ -195,7 +218,7 @@
                 htmlcontent: nodeReInput.innerHTML,
                 content: nodeReInput.innerText,
                 uTime: uTime
-            }).then(res => {
+            }, true).then(res => {
                 if (res && res.code == 1) {
                     nodeReEdit.style.display = "none";
                     nodeContentP.style.display = "block";
@@ -224,7 +247,7 @@
                 guid: guid(),
                 htmlcontent: _htmlcontent,
                 content: _content
-            }).then(res => {
+            }, true).then(res => {
                 if (res && res.code == 1) {
                     m_nodeinput.innerHTML = "";
 
@@ -238,7 +261,6 @@
                 e.removeAttribute("disabled");
             })
         }
-
     }
 
     function guid() {
@@ -250,10 +272,10 @@
 
     function fnGetNotes() {
         let that = this;
-        request("/note/get", "get", {}).then(res => {
-            setTimeout(function () {
-                document.getElementsByClassName("loading")[0].style.setProperty('display', 'none', 'important');
-            }, 800);
+        request("/note/get", "get", {}, true, 800).then(res => {
+            //setTimeout(function () {
+            //    fnLoading(false);
+            //}, 800);
 
             if (res && res.code == 1) {
 
@@ -316,7 +338,7 @@
 
         function yes(event) {
             //console.log("click ok", event);
-            request("/note/del", "post", { fid: fid }).then(res => {
+            request("/note/del", "post", { fid: fid }, true).then(res => {
                 if (res.code == 1) {
                     nodeNote.parentNode.removeChild(nodeNote);
                 } else {
