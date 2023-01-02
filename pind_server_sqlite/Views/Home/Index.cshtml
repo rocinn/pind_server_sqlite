@@ -36,6 +36,25 @@
 
 
 <script>
+    function request(url, method, data) {
+        let that = this;
+        return new Promise(function (resolve, reject) {
+            $.ajax({
+                type: method,
+                url: url,
+                data: data,
+                success: function (res) {
+                    resolve(res);
+                },
+                error: function (res) {
+                    //console.log("error", res);
+                    that.showToast(res.statusText);
+                    reject(res)
+                }
+            });
+        });
+    }
+
     var winHeight = 0;
     function findDimensions() { //函数：获取尺寸
         //获取窗口高度
@@ -59,23 +78,6 @@
     setTimeout(function () {
         findDimensions();
     }, 500);
-
-
-    //document.querySelector('div[contenteditable="true"]').addEventListener("paste", function (e) {
-    //    e.stopPropagation();
-    //    e.preventDefault();
-    //    var text = '', event = (e.originalEvent || e);
-    //    if (event.clipboardData && event.clipboardData.getData) {
-    //        text = event.clipboardData.getData('text/plain');
-    //    } else if (window.clipboardData && window.clipboardData.getData) {
-    //        text = window.clipboardData.getData('Text');
-    //    }
-    //    if (document.queryCommandSupported('insertText')) {
-    //        document.execCommand('insertText', false, text);
-    //    } else {
-    //        document.execCommand('paste', false, text);
-    //    }
-    //});
 
     function pasteDeal(e) {
         e.preventDefault();
@@ -101,13 +103,18 @@
     }
 
     var input = document.getElementById('input');
-    input.focus();
-    $(input).on("paste", function (e) {
-        pasteDeal(e)
-    });
+    //input.focus();
+    function bindPaste(node) {
+        $(node).on("paste", function (e) {
+            pasteDeal(e)
+        });
+    }
+    bindPaste(input);
 
     function onSaveClick(e) {
+        let that = this;
         let fid = e.getAttribute("data-fid");
+
         if (fid) {
             let uTime = e.getAttribute("data-uTime");
             let nodeReEdit = e.parentNode.parentNode;
@@ -122,43 +129,60 @@
                 return;
             }
 
-            $.post("/note/upd", {
+            if (!nodeReInput.innerText) {
+                showToast('未填写内容');
+                return;
+            }
+            e.setAttribute("disabled", true);
+            request("/note/upd", "post", {
                 fid: fid,
                 htmlcontent: nodeReInput.innerHTML,
                 content: nodeReInput.innerText,
                 uTime: uTime
-            }, function (data, status, xhr) {
-                if (data && data.code == 1) {
+            }).then(res => {
+                if (res && res.code == 1) {
                     nodeReEdit.style.display = "none";
                     nodeContentP.style.display = "block";
                     nodeOrInput.innerHTML = nodeReInput.innerHTML;
                     nodeNote.setAttribute("data-originContent", nodeReInput.innerText);
                     nodeNote.setAttribute("data-originHtmlContent", nodeReInput.innerHTML);
-                    nodeNote.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
-                    e.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
+                    nodeNote.setAttribute("data-uTime", res.data.arrNote[0].uTimeShow);
+                    e.setAttribute("data-uTime", res.data.arrNote[0].uTimeShow);
                 } else {
-                    showToast(data.message || '操作失败');
+                    that.showToast((res ? res.message : "") || '操作失败');
                 }
-            });
+            }).catch(res => {
+
+            }).finally(fin => {
+                e.removeAttribute("disabled");
+            })
         } else {
-            let _content = document.getElementById("input").innerText;
+            let nodeInput = document.getElementById("input");
+            let _htmlcontent = nodeInput.innerHTML;
+            let _content = nodeInput.innerText;
             if (!_content) {
                 showToast('未填写内容');
                 return;
             }
-            $.post("/note/add", {
+            e.setAttribute("disabled", true);
+            request("/note/add", "post", {
                 guid: guid(),
+                htmlcontent: _htmlcontent,
                 content: _content
-            }, function (data, status, xhr) {
-                if (data && data.code == 1) {
+            }).then(res => {
+                if (res && res.code == 1) {
                     document.getElementById("input").innerHTML = "";
 
                     // TODO
                     location.reload();
                 } else {
-                    showToast(data.message || '操作失败');
+                    that.showToast((res ? res.message : "") || '操作失败');
                 }
-            });
+            }).catch(res => {
+
+            }).finally(fin => {
+                e.removeAttribute("disabled");
+            })
         }
 
     }
@@ -171,17 +195,16 @@
     }
 
     function fnGetNotes() {
-        $.get("/note/get", {}, function (data, status, xhr) {
-
+        let that = this;
+        request("/note/get", "get", {}).then(res => {
             setTimeout(function () {
                 document.getElementsByClassName("loading")[0].style.setProperty('display', 'none', 'important');
-
             }, 800);
 
-            if (data && data.code == 1) {
+            if (res && res.code == 1) {
                 let nodenotelist = document.getElementById("notelist");
-                for (var i in data.data.arrNote) {
-                    let note = data.data.arrNote[i];
+                for (var i in res.data.arrNote) {
+                    let note = res.data.arrNote[i];
 
                     let div = document.createElement("div");
                     div.setAttribute("class", "note border rounded-3");
@@ -208,8 +231,10 @@
                     nodenotelist.appendChild(div);
                 }
             } else {
-                showToast(data.message || '操作失败');
+                that.showToast(res.message || '操作失败');
             }
+        }).catch(res => {
+
         });
     }
 
@@ -227,6 +252,7 @@
         let nodeReEdit = nodeNote.getElementsByClassName("reEdit")[0];
         if (nodeReEdit) {
             nodeReEdit.style.display = "block";
+            nodeReEdit.getElementsByClassName("input")[0].innerHTML = (originHtmlContent || originContent);
         } else {
             let div = document.createElement("div");
             div.setAttribute("class", "reEdit");
@@ -237,6 +263,8 @@
             //div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + m.substring(0, m.length - 1) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
 
             nodeNote.appendChild(div);
+
+            bindPaste(div.getElementsByClassName("input")[0]);
         }
 
         nodeContentP.style.display = "none";
@@ -279,7 +307,7 @@
         })
 
         //new bootstrap.Toast(node, { autohide: false, delay: 2000 }).show();
-        new bootstrap.Toast(node, { delay: 2000 }).show();
+        new bootstrap.Toast(node, { delay: 3000 }).show();
     }
 
 </script>
@@ -329,6 +357,7 @@
         align-items: center;
         display: flex;
         position: relative;
+        padding-top: 3px;
         /*padding-left: 10px;*/
         /*padding-right: 10px;*/
     }
