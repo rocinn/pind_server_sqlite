@@ -429,9 +429,54 @@ select last_insert_rowid();";
             }
         }
 
+        public void fnDelNote(int userid, string fid)
+        {
+            SQLiteConnection con = GetConnection();
+            SQLiteTransaction tran = null;
+            SQLiteCommand cmd = null;
+            string sql = "";
+            DateTime now = DateTime.Now;
+            try
+            {
+                con.Open();
+                tran = con.BeginTransaction();
+
+                sql = "select * from tuser where status = 1 and fid = @userid ";
+                cmd = new SQLiteCommand(sql, con, tran);
+                SetParameters(cmd, "@userid", userid);
+                DataRow drUser = GetRow(cmd);
+                if (drUser == null)
+                    throw new CustomException("账号不存在");
+
+                sql = "select * from tnote where fid = @fid and status = 1";
+                cmd = new SQLiteCommand(sql, con, tran);
+                SetParameters(cmd, "@fid", fid);
+                DataRow drNote = GetRow(cmd);
+                if (drNote == null)
+                    throw new CustomException("Note不存在");
+
+                sql = "update tnote set status = 0 where fid=@fid";
+                cmd = new SQLiteCommand(sql, con, tran);
+                SetParameters(cmd, "@fid", fid);
+                cmd.ExecuteNonQuery();
+
+                tran.Commit();
+            }
+            catch (Exception)
+            {
+                Rollback(tran);
+                throw;
+            }
+            finally
+            {
+                Close(con);
+            }
+        }
+
+
         public DataTable fnGetNote(int userid)
         {
-            string sql = "select * from tnote where userid= @userid order by fid desc";
+            string sql = "select * from tnote where userid= @userid and status = 1 order by fid desc";
             SQLiteCommand cmd = new SQLiteCommand(sql);
             SetParameters(cmd, "@userid", userid);
             DataTable dt = GetDT(cmd);

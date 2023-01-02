@@ -280,7 +280,10 @@
         div.setAttribute("data-uTime", note["uTimeShow"]);
 
         let str = "<div class='contentP'><div class='oprator'><div class='noteTime text-secondary'>" + note["iTimeShow"] +
-            "</div><div style='flex:1'></div><button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)'><img src='/Images/edit.png' style='height: 25px' /></button></div>";
+            "</div><div style='flex:1'></div>" +
+            "<button class='delete btn btn-light btnSelf' onclick='fndeleteClick(this)' style='margin-right:5px;'><img src='/Images/delete.png' style='height: 25px;' /></button>" +
+            "<button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)'><img src='/Images/edit.png' style='height: 25px' /></button>" +
+            "</div>";
         //"</div></div>";
 
         //str += "<div class='tags'><div class='tag'>tag1</div><div class='tag'>tag2</div></div>";
@@ -304,8 +307,27 @@
             m_nodelist.appendChild(div);
         }
     }
-
     fnGetNotes();
+
+    function fndeleteClick(e) {
+        let nodeContentP = e.parentNode.parentNode;
+        let nodeNote = nodeContentP.parentNode;
+        let fid = nodeNote.getAttribute("data-fid");
+
+        function yes(event) {
+            //console.log("click ok", event);
+            request("/note/del", "post", { fid: fid }).then(res => {
+                if (res.code == 1) {
+                    nodeNote.parentNode.removeChild(nodeNote);
+                } else {
+                    that.showToast(res.message || '操作失败');
+                }
+            }).catch(res => {
+
+            })
+        }
+        showModelYesNo("确认删除？", yes);
+    }
 
     function fntoEditClick(e) {
         let nodeContentP = e.parentNode.parentNode;
@@ -348,6 +370,27 @@
         modalBodyInput.innerText = msg || '操作失败';
 
         var _myModal = new bootstrap.Modal(nodeModel);
+        _myModal.show();
+    }
+
+    function showModelYesNo(msg, funYes) {
+        let nodeModel = document.getElementById("exampleModalCenter");
+        var modalBodyInput = nodeModel.querySelector('.modal-body')
+        modalBodyInput.innerText = msg;
+
+        function _clickYes(event) {
+            _myModal.hide();
+            funYes(event);
+        }
+
+        var _myModal = new bootstrap.Modal(nodeModel);
+        nodeModel.addEventListener('hidden.bs.modal', function (event) {
+            //console.log("hide", event);
+            node.removeEventListener('click', _clickYes);
+        })
+
+        let node = document.getElementsByClassName("modal_ok")[0];
+        node.addEventListener('click', _clickYes)
         _myModal.show();
     }
 

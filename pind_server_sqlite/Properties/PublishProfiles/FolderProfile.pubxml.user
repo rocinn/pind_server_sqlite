@@ -34,10 +34,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>04/22/2019 01:06:16</publishTime>
     </File>
     <File Include="bin/pind_server_sqlite.dll">
-      <publishTime>01/02/2023 23:57:12</publishTime>
+      <publishTime>01/03/2023 01:27:27</publishTime>
     </File>
     <File Include="bin/pind_server_sqlite.pdb">
-      <publishTime>01/02/2023 23:57:12</publishTime>
+      <publishTime>01/03/2023 01:27:27</publishTime>
     </File>
     <File Include="bin/roslyn/csc.exe">
       <publishTime>08/08/2018 05:38:48</publishTime>
@@ -378,6 +378,9 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="Images/cancel.png">
       <publishTime>01/01/2023 21:18:19</publishTime>
     </File>
+    <File Include="Images/delete.png">
+      <publishTime>01/03/2023 00:30:01</publishTime>
+    </File>
     <File Include="Images/edit.png">
       <publishTime>01/01/2023 20:57:15</publishTime>
     </File>
@@ -469,13 +472,13 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>12/31/2022 14:31:43</publishTime>
     </File>
     <File Include="Views/Home/Index.cshtml">
-      <publishTime>01/03/2023 00:19:14</publishTime>
+      <publishTime>01/03/2023 01:27:07</publishTime>
     </File>
     <File Include="Views/Home/Login.cshtml">
       <publishTime>01/02/2023 17:32:59</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml">
-      <publishTime>01/02/2023 17:01:28</publishTime>
+      <publishTime>01/03/2023 00:48:07</publishTime>
     </File>
     <File Include="Views/web.config">
       <publishTime>01/01/2023 23:24:27</publishTime>

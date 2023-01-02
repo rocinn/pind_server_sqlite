@@ -53,6 +53,22 @@ namespace pind_server_sqlite.Controllers
             return Json(new { code = 1, data = new { arrNote = dr.Table } });
         }
 
+        [HttpPost]
+        [Route("note/del")]
+        public IHttpActionResult delNote(JObject obj)
+        {
+            Request.Properties.TryGetValue("userid", out Object userid);
+            string fid = obj["fid"]?.ToString();
+
+            if (string.IsNullOrWhiteSpace(fid))
+            {
+                throw new CustomException("参数错误");
+            }
+
+            SqliteHelper.GetInstance().fnDelNote(Convert.ToInt32(userid), fid);
+            return Json(new { code = 1, message = "ok", data = new { } });
+        }
+
         [HttpGet]
         [Route("note/get")]
         public IHttpActionResult getNote()
