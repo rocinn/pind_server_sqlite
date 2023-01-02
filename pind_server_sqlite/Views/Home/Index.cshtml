@@ -6,7 +6,7 @@
 <div class="editor border border-light rounded-3 bg-light">
     <div id="input" class="input" contenteditable="true" placeholder="要记些什么呢..." spellcheck="false"></div>
     <div class="tool">
-        <img class="selectImg" src="~/Images/bxs-image.png" style="height: 25px; padding-left:10px" />
+        <img class="selectImg" src="~/Images/bxs-image.png" />
         <div style="flex:1"></div>
         @*<div style="margin-right:10px; color:gray">ctrl enter</div>*@
         <button type="button" class="btn btn-dark btnSelf" onclick="onSaveClick(this)"><img src="/Images/shandian-48.png" style="height: 25px" /></button>
@@ -222,7 +222,7 @@
                     div.setAttribute("data-uTime", note["uTimeShow"]);
 
                     let str = "<div class='contentP'><div class='oprator'><div class='noteTime text-secondary'>" + note["iTimeShow"] +
-                        "</div><div style='flex:1'></div><button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)' style='padding: 3px 8px;'><img src='/Images/edit.png' style='height: 25px' /></button></div>";
+                        "</div><div style='flex:1'></div><button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)'><img src='/Images/edit.png' style='height: 25px' /></button></div>";
                     //"</div></div>";
 
                     //str += "<div class='tags'><div class='tag'>tag1</div><div class='tag'>tag2</div></div>";
@@ -265,7 +265,7 @@
             let div = document.createElement("div");
             div.setAttribute("class", "reEdit");
 
-            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + (originHtmlContent || originContent) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' style='height: 25px; padding-left:10px' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
+            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + (originHtmlContent || originContent) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
 
             //let m = marked.parse(originContent);
             //div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + m.substring(0, m.length - 1) + "</div><div class='tool'><button class='btn btn-light btnSelf'><img class='selectImg' src='/Images/bxs-image.png' style='height: 25px' /></button><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
@@ -341,7 +341,7 @@
     }
 
     .input {
-        min-height: 60px;
+        min-height: 45px;
         max-height: 250px;
         overflow-y: auto;
         padding-left: 10px;
@@ -387,11 +387,14 @@
     }
 
     .selectImg {
-        height: 36px;
+        /*height: 36px;*/
+        height: 25px;
+        margin-left: 10px;
+        /*padding-top: 3px*/
     }
 
     .btnSelf {
-        padding: 3px 8px;
+        padding: 2px 10px;
     }
 
     #notelist {
