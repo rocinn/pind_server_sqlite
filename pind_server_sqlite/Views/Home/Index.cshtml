@@ -6,15 +6,18 @@
 <div class="editor border border-light rounded-3 bg-light">
     <div id="input" class="input" contenteditable="true" placeholder="要记些什么呢..." spellcheck="false"></div>
     <div class="tool">
-        <img class="selectImg" src="~/Images/bxs-image.png" />
+        <img class="selectImg" src="~/Images/bxs-image.png" style="height: 25px; padding-left:10px" />
         <div style="flex:1"></div>
         @*<div style="margin-right:10px; color:gray">ctrl enter</div>*@
         <button type="button" class="btn btn-dark btnSelf" onclick="onSaveClick(this)"><img src="/Images/shandian-48.png" style="height: 25px" /></button>
     </div>
 </div>
-<div class="d-flex justify-content-center loading" style="margin-top:10px;">
-    <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
+
+<div class="moreTool">
+    @*<div style="flex:1"></div>*@
+    <button class="btn btn-light btnSelf" onclick="fnonrefresh()"><img src="~/Images/refresh.png" style="height: 25px" /></button>
+    <div class="d-flex justify-content-center loading" style="flex:1">
+        <div class="spinner-border" role="status"></div>
     </div>
 </div>
 
@@ -36,6 +39,10 @@
 
 
 <script>
+    function fnonrefresh() {
+        location.reload();
+    }
+
     function request(url, method, data) {
         let that = this;
         return new Promise(function (resolve, reject) {
@@ -71,7 +78,8 @@
         }
 
         var editorH = document.getElementsByClassName("editor")[0].offsetHeight;
-        var h = winHeight - 15 - editorH - 10;
+        var moreTollH = document.getElementsByClassName("moreTool")[0].offsetHeight;
+        var h = winHeight - 15 - editorH - moreTollH - 10 - 10;
         $("#notelist").css("height", h);
     }
 
@@ -257,10 +265,10 @@
             let div = document.createElement("div");
             div.setAttribute("class", "reEdit");
 
-            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + (originHtmlContent || originContent) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
+            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + (originHtmlContent || originContent) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' style='height: 25px; padding-left:10px' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
 
             //let m = marked.parse(originContent);
-            //div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + m.substring(0, m.length - 1) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
+            //div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + m.substring(0, m.length - 1) + "</div><div class='tool'><button class='btn btn-light btnSelf'><img class='selectImg' src='/Images/bxs-image.png' style='height: 25px' /></button><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
 
             nodeNote.appendChild(div);
 
@@ -327,15 +335,16 @@
             margin-block-end: 0em;
         }
     */
+
     .editor {
-        padding: 10px;
+        padding: 10px 10px 10px 0;
     }
 
     .input {
         min-height: 60px;
         max-height: 250px;
         overflow-y: auto;
-        /*padding: 10px;*/
+        padding-left: 10px;
         outline: none;
         /*font-family: "微软雅黑";*/
         -webkit-user-modify: read-write;
@@ -358,6 +367,14 @@
         .input:focus:after {
             content: none;
         }
+
+
+    .moreTool {
+        align-items: center;
+        display: flex;
+        margin-top: 10px;
+        padding-right: 10px;
+    }
 
     .tool {
         /*height: 38px;*/
@@ -389,8 +406,12 @@
             display: none;
         }
 
+    .contentP {
+        padding-left: 10px;
+    }
+
     .note {
-        padding: 10px;
+        padding: 10px 10px 10px 0;
         margin-bottom: 10px;
         white-space: pre-line;
     }
