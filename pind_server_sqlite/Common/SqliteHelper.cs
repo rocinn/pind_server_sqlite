@@ -86,6 +86,7 @@ fid integer primary key autoincrement not null,
 userid integer not null,
 guid varchar(100) not null,
 content nvarchar,
+htmlcontent nvarchar,
 status integer default 1,
 iTime datetime default (datetime('now', 'localtime')),
 uTime datetime default (datetime('now', 'localtime')) );
@@ -99,6 +100,7 @@ userid integer,
 note_id integer,
 note_guid varchar(100),
 note_content nvarchar,
+note_htmlcontent nvarchar,
 note_status integer,
 status integer default 1,
 iTime datetime default (datetime('now', 'localtime')) );
@@ -305,7 +307,7 @@ create index if not exists tnoteImage_index_noteid on tnoteImage (noteid);";
             }
         }
 
-        public int fnAddNote(int userid, string guid, string content)
+        public int fnAddNote(int userid, string guid, string content, string htmlcontent)
         {
             SQLiteConnection con = GetConnection();
             SQLiteTransaction tran = null;
@@ -324,12 +326,13 @@ create index if not exists tnoteImage_index_noteid on tnoteImage (noteid);";
                 if (drUser == null)
                     throw new CustomException("账号不存在");
 
-                sql = @"insert into tnote (userid,guid,content,iTime) values (@userid,@guid,@content,@iTime);
+                sql = @"insert into tnote (userid,guid,content,htmlcontent,iTime) values (@userid,@guid,@content,@htmlcontent,@iTime);
 select last_insert_rowid();";
                 cmd = new SQLiteCommand(sql, con, tran);
                 SetParameters(cmd, "@userid", userid);
                 SetParameters(cmd, "@guid", guid);
                 SetParameters(cmd, "@content", content);
+                SetParameters(cmd, "@htmlcontent", htmlcontent);
                 SetParameters(cmd, "@iTime", now);
                 string id = GetString(cmd);
 
@@ -348,7 +351,7 @@ select last_insert_rowid();";
             }
         }
 
-        public DataRow fnUpdNote(int userid, string fid, string content, string uTime)
+        public DataRow fnUpdNote(int userid, string fid, string content, string htmlcontent, string uTime)
         {
             SQLiteConnection con = GetConnection();
             SQLiteTransaction tran = null;
@@ -384,10 +387,11 @@ select last_insert_rowid();";
                     }
                 }
 
-                sql = "update tnote set content = @content, uTime=@uTime where fid=@fid";
+                sql = "update tnote set content = @content, htmlcontent=@htmlcontent, uTime=@uTime where fid=@fid";
                 cmd = new SQLiteCommand(sql, con, tran);
                 SetParameters(cmd, "@fid", fid);
                 SetParameters(cmd, "@content", content);
+                SetParameters(cmd, "@htmlcontent", htmlcontent);
                 SetParameters(cmd, "@uTime", now);
                 cmd.ExecuteNonQuery();
 
@@ -425,6 +429,7 @@ select last_insert_rowid();";
             dt.Columns.Add("uTimeShow");
             foreach (DataRow dr in dt.Rows)
             {
+                dr["htmlcontent"] = dr["htmlcontent"].ToString();
                 dr["iTimeShow"] = DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
                 dr["uTimeShow"] = DateTime.Parse(dr["uTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
             }

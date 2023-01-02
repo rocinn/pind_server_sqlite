@@ -56,22 +56,54 @@
         $("#notelist").css("height", h);
     }
 
-    findDimensions();
+    setTimeout(function () {
+        findDimensions();
+    }, 500);
 
-    document.querySelector('div[contenteditable="true"]').addEventListener("paste", function (e) {
-        e.stopPropagation();
+
+    //document.querySelector('div[contenteditable="true"]').addEventListener("paste", function (e) {
+    //    e.stopPropagation();
+    //    e.preventDefault();
+    //    var text = '', event = (e.originalEvent || e);
+    //    if (event.clipboardData && event.clipboardData.getData) {
+    //        text = event.clipboardData.getData('text/plain');
+    //    } else if (window.clipboardData && window.clipboardData.getData) {
+    //        text = window.clipboardData.getData('Text');
+    //    }
+    //    if (document.queryCommandSupported('insertText')) {
+    //        document.execCommand('insertText', false, text);
+    //    } else {
+    //        document.execCommand('paste', false, text);
+    //    }
+    //});
+
+    function pasteDeal(e) {
         e.preventDefault();
-        var text = '', event = (e.originalEvent || e);
-        if (event.clipboardData && event.clipboardData.getData) {
-            text = event.clipboardData.getData('text/plain');
-        } else if (window.clipboardData && window.clipboardData.getData) {
-            text = window.clipboardData.getData('Text');
-        }
-        if (document.queryCommandSupported('insertText')) {
-            document.execCommand('insertText', false, text);
+        var text;
+        var clp = (e.originalEvent || e).clipboardData;
+        if (clp === undefined || clp === null) {
+            text = window.clipboardData.getData("text") || "";
+            if (text !== "") {
+                if (window.getSelection) {
+                    var newNode = document.createElement("span");
+                    newNode.innerHTML = text;
+                    window.getSelection().getRangeAt(0).insertNode(newNode);
+                } else {
+                    document.selection.createRange().pasteHTML(text);
+                }
+            }
         } else {
-            document.execCommand('paste', false, text);
+            text = clp.getData('text/plain') || "";
+            if (text !== "") {
+                document.execCommand('insertText', false, text);
+            }
         }
+    }
+
+    var input = document.getElementById('input');
+    input.focus();
+    $(input).on("paste", function (e) {
+        pasteDeal(e)
     });
 
     function onSaveClick(e) {
@@ -83,7 +115,8 @@
             let nodeContentP = nodeNote.getElementsByClassName("contentP")[0];
             let nodeOrInput = nodeContentP.getElementsByClassName("content")[0];
             let nodeReInput = nodeReEdit.getElementsByClassName("input")[0];
-            if (nodeOrInput.innerText == nodeReInput.innerText) {
+            //if (nodeOrInput.innerText == nodeReInput.innerText) {
+            if (nodeOrInput.innerHTML == nodeReInput.innerHTML) {
                 nodeReEdit.style.display = "none";
                 nodeContentP.style.display = "block";
                 return;
@@ -91,6 +124,7 @@
 
             $.post("/note/upd", {
                 fid: fid,
+                htmlcontent: nodeReInput.innerHTML,
                 content: nodeReInput.innerText,
                 uTime: uTime
             }, function (data, status, xhr) {
@@ -99,6 +133,7 @@
                     nodeContentP.style.display = "block";
                     nodeOrInput.innerHTML = nodeReInput.innerHTML;
                     nodeNote.setAttribute("data-originContent", nodeReInput.innerText);
+                    nodeNote.setAttribute("data-originHtmlContent", nodeReInput.innerHTML);
                     nodeNote.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
                     e.setAttribute("data-uTime", data.data.arrNote[0].uTimeShow);
                 } else {
@@ -151,6 +186,7 @@
                     let div = document.createElement("div");
                     div.setAttribute("class", "note border rounded-3");
                     div.setAttribute("data-originContent", note["content"]);
+                    div.setAttribute("data-originHtmlContent", note["htmlcontent"]);
                     div.setAttribute("data-fid", note["fid"]);
                     div.setAttribute("data-uTime", note["uTimeShow"]);
 
@@ -159,9 +195,11 @@
                     //"</div></div>";
 
                     //str += "<div class='tags'><div class='tag'>tag1</div><div class='tag'>tag2</div></div>";
-                    let m = marked.parse(note["content"]);
+
+                    //let m = marked.parse(note["content"]);
                     //str += ("<div class='content'>" + m.substring(0, m.length - 1) + "</div></div>");
-                    str += ("<div class='content'>" + note["content"] + "</div>");
+
+                    str += ("<div class='content'>" + (note["htmlcontent"] || note["content"]) + "</div>");
 
                     //let toedit = "<div><div class='input' contenteditable='true' spellcheck='false'></div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button type='button' class='btn btn-dark btnSelf' onclick='onSaveClick()'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div></div>";
                     //div.innerHTML = str + toedit;
@@ -182,6 +220,7 @@
 
         let nodeNote = nodeContentP.parentNode;
         let originContent = nodeNote.getAttribute("data-originContent");
+        let originHtmlContent = nodeNote.getAttribute("data-originHtmlContent");
         let fid = nodeNote.getAttribute("data-fid");
         let uTime = nodeNote.getAttribute("data-uTime");
 
@@ -191,7 +230,11 @@
         } else {
             let div = document.createElement("div");
             div.setAttribute("class", "reEdit");
-            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + originContent + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
+
+            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + (originHtmlContent || originContent) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
+
+            //let m = marked.parse(originContent);
+            //div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + m.substring(0, m.length - 1) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
 
             nodeNote.appendChild(div);
         }
@@ -242,12 +285,12 @@
 </script>
 
 <style>
-    /* p {
+    p {
         margin-top: 0;
         margin-bottom: 0rem;
         margin-block-start: 0em;
         margin-block-end: 0em;
-    }*/
+    }
 
     .editor {
         padding: 10px;
