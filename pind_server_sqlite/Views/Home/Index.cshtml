@@ -47,10 +47,13 @@
     function fninputfocus() {
         m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "flex";
         m_inputtool_display = "flex";
+        m_inputtool_display_timeout = "";
+        m_nodelist.style.height = m_nodelist.clientHeight - 20 + "px";
     }
     m_nodeinput.addEventListener('focus', fninputfocus, false);
 
-    var startY_list, y_list
+    var startY_list, y_list;
+    let m_inputtool_display_timeout;
     function fnnotelisttouchSatrt(e) {
         var touch = e.touches[0];
         startY_list = touch.pageY;
@@ -63,11 +66,15 @@
             if (m_inputtool_display == "none")
                 return;
 
+            if (m_inputtool_display_timeout)
+                return;
+
             m_nodeinput.blur();
-            //m_nodelist.focus();
-            //m_inputtool_display = "none";
-            setTimeout(function () {
+            m_inputtool_display_timeout = setTimeout(function () {
                 m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "none";
+                m_inputtool_display = "none";
+                m_nodelist.style.height = m_nodelist.clientHeight + 20 + "px";
+                m_inputtool_display_timeout = "";
             }, 200);
         }
     }
@@ -82,8 +89,6 @@
     }
 
     function fnonrefresh(e) {
-        //location.reload();
-        e.blur();
         document.getElementsByClassName("loading")[0].style.setProperty('display', 'block', 'important');
         fnGetNotes();
     }
