@@ -30,9 +30,8 @@ namespace pind_server_sqlite.Controllers
                 throw new CustomException("参数错误");
             }
 
-            int id = SqliteHelper.GetInstance().fnAddNote(Convert.ToInt32(userid), guid, content, htmlcontent);
-
-            return Json(new { code = 1, data = new { id = id } });
+            DataRow dr = SqliteHelper.GetInstance().fnAddNote(Convert.ToInt32(userid), guid, content, htmlcontent);
+            return Json(new { code = 1, data = new { arrNote = dr.Table } });
         }
 
         [HttpPost]
@@ -51,9 +50,7 @@ namespace pind_server_sqlite.Controllers
             }
 
             DataRow dr = SqliteHelper.GetInstance().fnUpdNote(Convert.ToInt32(userid), fid, content, htmlcontent, uTime);
-            DataTable dt = dr.Table.Clone();
-            dt.Rows.Add(dr.ItemArray);
-            return Json(new { code = 1, data = new { arrNote = dt } });
+            return Json(new { code = 1, data = new { arrNote = dr.Table } });
         }
 
         [HttpGet]

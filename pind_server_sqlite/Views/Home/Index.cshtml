@@ -16,7 +16,7 @@
 <div class="moreTool">
     @*<div style="flex:1"></div>*@
     <button class="btn btn-light btnSelf" onclick="fnonlogout()" style="margin-right:5px;"><img src="~/Images/logout.png" style="height: 25px" /></button>
-    <button class="btn btn-light btnSelf" onclick="fnonrefresh()"><img src="~/Images/refresh.png" style="height: 25px" /></button>
+    <button class="btn btn-light btnSelf" onclick="fnonrefresh(this)"><img src="~/Images/refresh.png" style="height: 25px" /></button>
     <div class="d-flex justify-content-center loading" style="margin-left:10px">
         <div class="spinner-border" role="status" style="height: 25px; width: 25px"></div>
     </div>
@@ -65,7 +65,7 @@
 
             m_nodeinput.blur();
             //m_nodelist.focus();
-            m_inputtool_display = "none";
+            //m_inputtool_display = "none";
             setTimeout(function () {
                 m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "none";
             }, 200);
@@ -81,8 +81,11 @@
         })
     }
 
-    function fnonrefresh() {
-        location.reload();
+    function fnonrefresh(e) {
+        //location.reload();
+        e.blur();
+        document.getElementsByClassName("loading")[0].style.setProperty('display', 'block', 'important');
+        fnGetNotes();
     }
 
     function request(url, method, data) {
@@ -220,8 +223,7 @@
                 if (res && res.code == 1) {
                     m_nodeinput.innerHTML = "";
 
-                    // TODO
-                    location.reload();
+                    that.fnInsertNote(res.data.arrNote[0], true);
                 } else {
                     that.showToast((res ? res.message : "") || '操作失败');
                 }
@@ -249,32 +251,12 @@
             }, 800);
 
             if (res && res.code == 1) {
+
+                m_nodelist.innerHTML = "";
+
                 for (var i in res.data.arrNote) {
                     let note = res.data.arrNote[i];
-
-                    let div = document.createElement("div");
-                    div.setAttribute("class", "note border rounded-3");
-                    div.setAttribute("data-originContent", note["content"]);
-                    div.setAttribute("data-originHtmlContent", note["htmlcontent"]);
-                    div.setAttribute("data-fid", note["fid"]);
-                    div.setAttribute("data-uTime", note["uTimeShow"]);
-
-                    let str = "<div class='contentP'><div class='oprator'><div class='noteTime text-secondary'>" + note["iTimeShow"] +
-                        "</div><div style='flex:1'></div><button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)'><img src='/Images/edit.png' style='height: 25px' /></button></div>";
-                    //"</div></div>";
-
-                    //str += "<div class='tags'><div class='tag'>tag1</div><div class='tag'>tag2</div></div>";
-
-                    //let m = marked.parse(note["content"]);
-                    //str += ("<div class='content'>" + m.substring(0, m.length - 1) + "</div></div>");
-
-                    str += ("<div class='content'>" + (note["htmlcontent"] || note["content"]) + "</div>");
-
-                    //let toedit = "<div><div class='input' contenteditable='true' spellcheck='false'></div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button type='button' class='btn btn-dark btnSelf' onclick='onSaveClick()'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div></div>";
-                    //div.innerHTML = str + toedit;
-                    div.innerHTML = str;
-
-                    m_nodelist.appendChild(div);
+                    that.fnInsertNote(note);
                 }
             } else {
                 that.showToast(res.message || '操作失败');
@@ -282,6 +264,40 @@
         }).catch(res => {
 
         });
+    }
+
+    function fnInsertNote(note, isfirst = false) {
+        let div = document.createElement("div");
+        div.setAttribute("class", "note border rounded-3");
+        div.setAttribute("data-originContent", note["content"]);
+        div.setAttribute("data-originHtmlContent", note["htmlcontent"]);
+        div.setAttribute("data-fid", note["fid"]);
+        div.setAttribute("data-uTime", note["uTimeShow"]);
+
+        let str = "<div class='contentP'><div class='oprator'><div class='noteTime text-secondary'>" + note["iTimeShow"] +
+            "</div><div style='flex:1'></div><button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)'><img src='/Images/edit.png' style='height: 25px' /></button></div>";
+        //"</div></div>";
+
+        //str += "<div class='tags'><div class='tag'>tag1</div><div class='tag'>tag2</div></div>";
+
+        //let m = marked.parse(note["content"]);
+        //str += ("<div class='content'>" + m.substring(0, m.length - 1) + "</div></div>");
+
+        str += ("<div class='content'>" + (note["htmlcontent"] || note["content"]) + "</div>");
+
+        //let toedit = "<div><div class='input' contenteditable='true' spellcheck='false'></div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button type='button' class='btn btn-dark btnSelf' onclick='onSaveClick()'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div></div>";
+        //div.innerHTML = str + toedit;
+        div.innerHTML = str;
+
+        if (isfirst) {
+            if (m_nodelist.children.length > 0) {
+                m_nodelist.insertBefore(div, m_nodelist.children[0])
+            } else {
+                m_nodelist.appendChild(div);
+            }
+        } else {
+            m_nodelist.appendChild(div);
+        }
     }
 
     fnGetNotes();

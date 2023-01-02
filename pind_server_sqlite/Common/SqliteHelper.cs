@@ -5,6 +5,7 @@ using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Net.Configuration;
+using System.Security.Cryptography;
 using System.Web;
 using Newtonsoft.Json;
 
@@ -307,7 +308,7 @@ create index if not exists tnoteImage_index_noteid on tnoteImage (noteid);";
             }
         }
 
-        public int fnAddNote(int userid, string guid, string content, string htmlcontent)
+        public DataRow fnAddNote(int userid, string guid, string content, string htmlcontent)
         {
             SQLiteConnection con = GetConnection();
             SQLiteTransaction tran = null;
@@ -336,9 +337,18 @@ select last_insert_rowid();";
                 SetParameters(cmd, "@iTime", now);
                 string id = GetString(cmd);
 
+                sql = "select * from tnote where fid = @fid and status = 1";
+                cmd = new SQLiteCommand(sql, con, tran);
+                SetParameters(cmd, "@fid", id);
+                DataRow dr = GetRow(cmd);
+                dr.Table.Columns.Add("iTimeShow");
+                dr.Table.Columns.Add("uTimeShow");
+                dr["iTimeShow"] = DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
+                dr["uTimeShow"] = DateTime.Parse(dr["uTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
+
                 tran.Commit();
 
-                return Convert.ToInt32(id);
+                return dr;
             }
             catch (Exception)
             {
