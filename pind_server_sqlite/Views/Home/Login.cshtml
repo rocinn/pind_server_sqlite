@@ -3,6 +3,9 @@
 @{
     ViewBag.Title = "登录";
 }
+
+<div class="pind">pind笔记</div>
+
 @using (Html.BeginForm("login", "home", null, FormMethod.Post, new { @name = "loginform", @id = "loginform" }))
 {
     <div class="loginContainer form-horizontal">
@@ -24,11 +27,19 @@
 </script>
 
 <style>
+    .pind {
+        justify-content: center;
+        display: flex;
+        margin-top: 100px;
+        font-weight: bold;
+        font-size: 1rem;
+    }
+
     .loginContainer {
         display: flex;
         flex-flow: column;
         align-items: center;
-        margin-top: 200px;
+        margin-top: 100px;
     }
 
     .Password {

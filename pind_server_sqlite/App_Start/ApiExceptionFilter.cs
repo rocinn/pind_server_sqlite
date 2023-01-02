@@ -12,7 +12,7 @@ using System.Web.UI.WebControls;
 
 namespace pind_server_sqlite.App_Start
 {
-    public class ExceptionFilter : ExceptionFilterAttribute
+    public class ApiExceptionFilter : ExceptionFilterAttribute
     {
         public override void OnException(HttpActionExecutedContext actionExecutedContext)
         {

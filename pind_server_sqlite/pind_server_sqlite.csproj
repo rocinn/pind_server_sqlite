@@ -155,6 +155,7 @@
     <Content Include="Images\pind.png" />
     <Content Include="Images\shandian-48.png" />
     <Content Include="Images\cancel.png" />
+    <Content Include="Images\logout.png" />
     <Content Include="log4net.xml" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
@@ -179,7 +180,7 @@
   <ItemGroup>
     <Compile Include="App_Start\ApiAuthorizationFilter.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
-    <Compile Include="App_Start\ExceptionFilter.cs" />
+    <Compile Include="App_Start\ApiExceptionFilter.cs" />
     <Compile Include="App_Start\MyAuthorizationFilter.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
@@ -189,6 +190,7 @@
     <Compile Include="Common\Util.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NoteController.cs" />
+    <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

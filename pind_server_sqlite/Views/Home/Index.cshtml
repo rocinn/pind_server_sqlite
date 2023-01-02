@@ -15,6 +15,7 @@
 
 <div class="moreTool">
     @*<div style="flex:1"></div>*@
+    <button class="btn btn-light btnSelf" onclick="fnonlogout()" style="margin-right:5px;"><img src="~/Images/logout.png" style="height: 25px" /></button>
     <button class="btn btn-light btnSelf" onclick="fnonrefresh()"><img src="~/Images/refresh.png" style="height: 25px" /></button>
     <div class="d-flex justify-content-center loading" style="margin-left:10px">
         <div class="spinner-border" role="status" style="height: 25px; width: 25px"></div>
@@ -37,8 +38,49 @@
     @*}*@
 </div>
 
-
 <script>
+    var m_nodeeditor = document.getElementsByClassName('editor')[0];
+    var m_nodeinput = document.getElementById('input');
+    var m_nodelist = document.getElementById('notelist');
+    var m_inputtool_display = "";
+
+    function fninputfocus() {
+        m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "flex";
+        m_inputtool_display = "flex";
+    }
+    m_nodeinput.addEventListener('focus', fninputfocus, false);
+
+    var startY_list, y_list
+    function fnnotelisttouchSatrt(e) {
+        var touch = e.touches[0];
+        startY_list = touch.pageY;
+    }
+    function fnnotelisttouchMove(e) {
+        var touch = e.touches[0];
+        y_list = startY_list - touch.pageY; // y 上下滑动距离 以及方向 上滑 大于0 下滑小于0
+
+        if (y_list > 0) {
+            if (m_inputtool_display == "none")
+                return;
+
+            m_nodeinput.blur();
+            //m_nodelist.focus();
+            m_inputtool_display = "none";
+            setTimeout(function () {
+                m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "none";
+            }, 200);
+        }
+    }
+    m_nodelist.addEventListener('touchstart', fnnotelisttouchSatrt, false);
+    m_nodelist.addEventListener('touchmove', fnnotelisttouchMove, false);
+
+    function fnonlogout() {
+        request("/user/logout", "post", {}).then(res => {
+            location.reload();
+        }).catch(res => {
+        })
+    }
+
     function fnonrefresh() {
         location.reload();
     }
@@ -110,14 +152,12 @@
         }
     }
 
-    var input = document.getElementById('input');
-    //input.focus();
     function bindPaste(node) {
         $(node).on("paste", function (e) {
             pasteDeal(e)
         });
     }
-    bindPaste(input);
+    bindPaste(m_nodeinput);
 
     function onSaveClick(e) {
         let that = this;
@@ -165,9 +205,8 @@
                 e.removeAttribute("disabled");
             })
         } else {
-            let nodeInput = document.getElementById("input");
-            let _htmlcontent = nodeInput.innerHTML;
-            let _content = nodeInput.innerText;
+            let _htmlcontent = m_nodeinput.innerHTML;
+            let _content = m_nodeinput.innerText;
             if (!_content) {
                 showToast('未填写内容');
                 return;
@@ -179,7 +218,7 @@
                 content: _content
             }).then(res => {
                 if (res && res.code == 1) {
-                    document.getElementById("input").innerHTML = "";
+                    m_nodeinput.innerHTML = "";
 
                     // TODO
                     location.reload();
@@ -210,7 +249,6 @@
             }, 800);
 
             if (res && res.code == 1) {
-                let nodenotelist = document.getElementById("notelist");
                 for (var i in res.data.arrNote) {
                     let note = res.data.arrNote[i];
 
@@ -236,7 +274,7 @@
                     //div.innerHTML = str + toedit;
                     div.innerHTML = str;
 
-                    nodenotelist.appendChild(div);
+                    m_nodelist.appendChild(div);
                 }
             } else {
                 that.showToast(res.message || '操作失败');
@@ -336,6 +374,18 @@
         }
     */
 
+    .lock {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        height: 830px;
+        width: 100%;
+        z-index: 1000;
+        background-color: lightgray;
+        z-index: 1000;
+    }
+
     .editor {
         padding: 10px 10px 10px 0;
     }
@@ -388,7 +438,7 @@
 
     .selectImg {
         /*height: 36px;*/
-        height: 25px;
+        height: 28px;
         margin-left: 10px;
         /*padding-top: 3px*/
     }
