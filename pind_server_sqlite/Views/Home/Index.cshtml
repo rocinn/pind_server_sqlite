@@ -6,15 +6,13 @@
 <div class="editor border border-light rounded-3 bg-light">
     <div id="input" class="input" contenteditable="true" placeholder="要记些什么呢..." spellcheck="false"></div>
     <div class="tool">
-        <img class="selectImg" src="~/Images/bxs-image.png" />
+        <img class="selectImg" src="/Images/bxs-image.png" onclick="fnSelectImage(this)" />
         <div style="flex:1"></div>
-        @*<div style="margin-right:10px; color:gray">ctrl enter</div>*@
         <button type="button" class="btn btn-dark btnSelf" onclick="onSaveClick(this)"><img src="/Images/shandian-48.png" style="height: 25px" /></button>
     </div>
 </div>
 
 <div class="moreTool">
-    @*<div style="flex:1"></div>*@
     <button class="btn btn-light btnSelf" onclick="fnonlogout()" style="margin-right:5px;"><img src="~/Images/logout.png" style="height: 25px" /></button>
     <button class="btn btn-light btnSelf" onclick="fnonrefresh(this)"><img src="~/Images/refresh.png" style="height: 25px" /></button>
     <div class="d-flex justify-content-center loading" style="margin-left:10px;display:none">
@@ -23,19 +21,6 @@
 </div>
 
 <div id="notelist">
-    @*@foreach (System.Data.DataRow dr in (ViewBag.dtNotes as System.Data.DataTable).Rows)
-        {*@
-    <!--<div class="note border rounded-3">
-        <div class="oprator">
-            <div class="noteTime text-secondary">-->
-    @*@DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss")*@
-    <!--</div>
-    </div>
-    <div class="content">-->
-    @*@dr["content"].ToString()*@
-    <!--</div>
-    </div>-->
-    @*}*@
 </div>
 
 <script>
@@ -101,6 +86,10 @@
         fnGetNotes();
     }
 
+    function fnSelectImage(e) {
+        showToast("还没有实现上传图片😂");
+    }
+
     function request(url, method, data, isshowloading = false, loadingtime = 0) {
         let that = this;
         return new Promise(function (resolve, reject) {
@@ -114,7 +103,6 @@
                     resolve(res);
                 },
                 error: function (res) {
-                    //console.log("error", res);
                     that.showToast(res.statusText, true);
                     reject(res)
                 },
@@ -201,7 +189,6 @@
             let nodeContentP = nodeNote.getElementsByClassName("contentP")[0];
             let nodeOrInput = nodeContentP.getElementsByClassName("content")[0];
             let nodeReInput = nodeReEdit.getElementsByClassName("input")[0];
-            //if (nodeOrInput.innerText == nodeReInput.innerText) {
             if (nodeOrInput.innerHTML == nodeReInput.innerHTML) {
                 nodeReEdit.style.display = "none";
                 nodeContentP.style.display = "block";
@@ -273,10 +260,6 @@
     function fnGetNotes() {
         let that = this;
         request("/note/get", "get", {}, true, 800).then(res => {
-            //setTimeout(function () {
-            //    fnLoading(false);
-            //}, 800);
-
             if (res && res.code == 1) {
 
                 m_nodelist.innerHTML = "";
@@ -306,17 +289,7 @@
             "<button class='delete btn btn-light btnSelf' onclick='fndeleteClick(this)' style='margin-right:5px;'><img src='/Images/delete.png' style='height: 25px;' /></button>" +
             "<button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)'><img src='/Images/edit.png' style='height: 25px' /></button>" +
             "</div>";
-        //"</div></div>";
-
-        //str += "<div class='tags'><div class='tag'>tag1</div><div class='tag'>tag2</div></div>";
-
-        //let m = marked.parse(note["content"]);
-        //str += ("<div class='content'>" + m.substring(0, m.length - 1) + "</div></div>");
-
         str += ("<div class='content'>" + (note["htmlcontent"] || note["content"]) + "</div>");
-
-        //let toedit = "<div><div class='input' contenteditable='true' spellcheck='false'></div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button type='button' class='btn btn-dark btnSelf' onclick='onSaveClick()'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div></div>";
-        //div.innerHTML = str + toedit;
         div.innerHTML = str;
 
         if (isfirst) {
@@ -337,7 +310,6 @@
         let fid = nodeNote.getAttribute("data-fid");
 
         function yes(event) {
-            //console.log("click ok", event);
             request("/note/del", "post", { fid: fid }, true).then(res => {
                 if (res.code == 1) {
                     nodeNote.parentNode.removeChild(nodeNote);
@@ -367,14 +339,8 @@
         } else {
             let div = document.createElement("div");
             div.setAttribute("class", "reEdit");
-
-            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + (originHtmlContent || originContent) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' /><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
-
-            //let m = marked.parse(originContent);
-            //div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + m.substring(0, m.length - 1) + "</div><div class='tool'><button class='btn btn-light btnSelf'><img class='selectImg' src='/Images/bxs-image.png' style='height: 25px' /></button><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
-
+            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + (originHtmlContent || originContent) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' onclick='fnSelectImage(this)'/><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
             nodeNote.appendChild(div);
-
             bindPaste(div.getElementsByClassName("input")[0]);
         }
 
@@ -407,7 +373,6 @@
 
         var _myModal = new bootstrap.Modal(nodeModel);
         nodeModel.addEventListener('hidden.bs.modal', function (event) {
-            //console.log("hide", event);
             node.removeEventListener('click', _clickYes);
         })
 
@@ -424,7 +389,6 @@
         node.setAttribute("aria-live", "assertive");
         node.setAttribute("aria-atomic", true);
         if (ndoeToastsP.children.length > 0) {
-            //node.style.setProperty("top", ndoeToastsP.children[ndoeToastsP.children.length - 1].offsetTop + 85 + 5 + "px");
             node.style.setProperty("top", ndoeToastsP.children[ndoeToastsP.children.length - 1].offsetTop + 47 + 5 + "px");
         } else {
             node.style.setProperty("top", "0px");
@@ -437,7 +401,7 @@
         if (isError) {
             node.style.setProperty("color", "red");
         }
-        //node.innerHTML = "<div class='toast-header'><strong class='me-auto'></strong><button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button> </div><div class='toast-body'>Hello, world! This is a toast message. </div>";
+
         node.innerHTML = "<div class='toast-body'>Hello, world! This is a toast message.</div><button type='button' class='btn-close ms-auto me-2' data-bs-dismiss='toast' aria-label='Close'></button>";
         node.getElementsByClassName("toast-body")[0].innerText = msg;
         ndoeToastsP.appendChild(node);
@@ -445,21 +409,12 @@
             node.parentNode.removeChild(node);
         })
 
-        //new bootstrap.Toast(node, { autohide: false, delay: 2000 }).show();
         new bootstrap.Toast(node, { delay: 2500 }).show();
     }
 
 </script>
 
 <style>
-    /* p {
-            margin-top: 0;
-            margin-bottom: 0rem;
-            margin-block-start: 0em;
-            margin-block-end: 0em;
-        }
-    */
-
     .lock {
         display: flex;
         align-items: center;
@@ -482,7 +437,6 @@
         overflow-y: auto;
         padding-left: 10px;
         outline: none;
-        /*font-family: "微软雅黑";*/
         -webkit-user-modify: read-write;
         line-height: 22px;
     }
@@ -513,20 +467,15 @@
     }
 
     .tool {
-        /*height: 38px;*/
         align-items: center;
         display: flex;
         position: relative;
         padding-top: 3px;
-        /*padding-left: 10px;*/
-        /*padding-right: 10px;*/
     }
 
     .selectImg {
-        /*height: 36px;*/
         height: 28px;
         margin-left: 10px;
-        /*padding-top: 3px*/
     }
 
     .btnSelf {
@@ -535,7 +484,6 @@
 
     #notelist {
         margin-top: 10px;
-        /*height: 800px;*/
         overflow-y: auto;
         flex-direction: column;
         display: flex;
@@ -557,7 +505,6 @@
 
     .oprator {
         display: flex;
-        /*justify-content:center;*/
         align-items: center;
     }
 
