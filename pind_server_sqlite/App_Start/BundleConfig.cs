@@ -23,11 +23,10 @@ namespace pind_server_sqlite.App_Start
             bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
                       "~/Scripts/bootstrap.js"));
 
-            bundles.Add(new ScriptBundle("~/bundles/md5").Include(
-                      "~/Scripts/md5.min.js"));
-
-            bundles.Add(new ScriptBundle("~/bundles/marked").Include(
-                     "~/Scripts/marked.min.js"));
+            bundles.Add(new ScriptBundle("~/bundles/common").Include(
+                      "~/Scripts/md5.min.js",
+                      "~/Scripts/mark.min.js",
+                      "~/Scripts/marked.min.js"));
         }
     }
 }

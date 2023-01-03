@@ -78,5 +78,23 @@ namespace pind_server_sqlite.Controllers
 
             return Json(new { code = 1, data = new { arrNote = dt } });
         }
+
+        [HttpGet]
+        [Route("note/search")]
+        public IHttpActionResult searchNote(string stext)
+        {
+            Request.Properties.TryGetValue("userid", out Object userid);
+            DataTable dt = new DataTable();
+            if (string.IsNullOrWhiteSpace(stext))
+            {
+                dt = SqliteHelper.GetInstance().fnGetNote(Convert.ToInt32(userid));
+            }
+            else
+            {
+                dt = SqliteHelper.GetInstance().fnSearchNote(Convert.ToInt32(userid), stext);
+            }
+
+            return Json(new { code = 1, data = new { arrNote = dt } });
+        }
     }
 }

@@ -169,6 +169,7 @@
     <Content Include="Scripts\jquery-3.6.1.min.js" />
     <Content Include="Scripts\jquery-3.6.1.slim.js" />
     <Content Include="Scripts\jquery-3.6.1.slim.min.js" />
+    <Content Include="Scripts\mark.min.js" />
     <Content Include="Scripts\marked.min.js" />
     <Content Include="Scripts\md5.js" />
     <Content Include="Scripts\md5.min.js" />

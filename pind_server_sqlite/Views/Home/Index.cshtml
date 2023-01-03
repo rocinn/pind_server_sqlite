@@ -18,6 +18,8 @@
     <div class="d-flex justify-content-center loading" style="margin-left:10px;display:none">
         <div class="spinner-border" role="status" style="height: 25px; width: 25px"></div>
     </div>
+    <div style="flex:1"></div>
+    <input id="search" class="rounded-2" placeholder="搜索" type="text" autocomplete="off" />
 </div>
 
 <div id="notelist">
@@ -66,13 +68,6 @@
     m_nodelist.addEventListener('touchstart', fnnotelisttouchSatrt, false);
     m_nodelist.addEventListener('touchmove', fnnotelisttouchMove, false);
 
-    function fnonlogout() {
-        request("/user/logout", "post", {}, true).then(res => {
-            location.reload();
-        }).catch(res => {
-        })
-    }
-
     function fnLoading(isshow) {
         if (isshow) {
             document.getElementsByClassName("loading")[0].style.setProperty('display', 'block', 'important');
@@ -95,6 +90,18 @@
         return new Promise(function (resolve, reject) {
             that.fnLoading(isshowloading);
             let d1 = new Date();
+            method = method.toLowerCase();
+            if (method == "get") {
+                let getParas = "";
+                for (var i = 0; i < data.length; i++) {
+                    getParas += ("&" + data[i].text + "=" + data[i].value);
+                }
+                if (getParas) {
+                    url += ("?" + getParas.substring(1, getParas.length - 1));
+                }
+            } else if (method != "post") {
+                reject({ code: -1, message: "不支持的请求" })
+            }
             $.ajax({
                 type: method,
                 url: url,
@@ -121,6 +128,13 @@
                 }
             });
         });
+    }
+
+    function fnonlogout() {
+        request("/user/logout", "post", {}, true).then(res => {
+            location.reload();
+        }).catch(res => {
+        })
     }
 
     var winHeight = 0;
@@ -412,9 +426,63 @@
         new bootstrap.Toast(node, { delay: 2500 }).show();
     }
 
+    var m_markins = new Mark(m_nodelist)
+    var nodesearch = document.getElementById("search");
+    var isInputZh = false;
+    var inputDelay = [];
+    nodesearch.addEventListener('compositionstart', function (e) {
+        isInputZh = true;
+    }, false);
+
+    nodesearch.addEventListener('compositionend', function (e) {
+        isInputZh = false;
+        console.log("compositionend", e.data);
+        filter(nodesearch.value);
+    }, false);
+
+    nodesearch.addEventListener('input', function (e) {
+        if (isInputZh) return;
+        let st = e.currentTarget.value
+        console.log("input", st);
+        filter(st);
+    }, false);
+
+    function filter(input) {
+        var delay = setTimeout(function () {
+            m_markins.unmark();
+            request("/note/search", "get", { stext: input.toString().trim() }, true).then(res => {
+                m_nodelist.innerHTML = "";
+                for (var i in res.data.arrNote) {
+                    let note = res.data.arrNote[i];
+                    fnInsertNote(note);
+                }
+                if (input) {
+                    m_markins.mark(input);
+                }
+            }).catch(res => { });
+
+        }, 500);
+        for (var i = 0; i < inputDelay.length; i++) {
+            clearTimeout(inputDelay[i])
+        }
+        inputDelay = [];
+        inputDelay.push(delay);
+    }
+
+
 </script>
 
 <style>
+    mark {
+        background-color: white;
+        color: black;
+        /*border-radius: 3px;*/
+        padding: 0px;
+        /*margin-right: 3px;*/
+        /*text-decoration: underline;*/
+        border-bottom: 5px solid #4dc9cb;
+    }
+
     .lock {
         display: flex;
         align-items: center;
@@ -463,7 +531,17 @@
         align-items: center;
         display: flex;
         margin-top: 10px;
+        /*padding-right: 10px;*/
+    }
+
+    #search {
+        border: 0;
+        background-color: #f8f9fa;
+        height: 32px;
+        line-height: 32px;
+        padding-left: 10px;
         padding-right: 10px;
+        outline: none;
     }
 
     .tool {

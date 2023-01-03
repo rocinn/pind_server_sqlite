@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Configuration;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Web;
 using Newtonsoft.Json;
 
@@ -341,14 +342,12 @@ select last_insert_rowid();";
                 cmd = new SQLiteCommand(sql, con, tran);
                 SetParameters(cmd, "@fid", id);
                 DataRow dr = GetRow(cmd);
-                dr.Table.Columns.Add("iTimeShow");
-                dr.Table.Columns.Add("uTimeShow");
-                dr["iTimeShow"] = DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
-                dr["uTimeShow"] = DateTime.Parse(dr["uTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
 
                 tran.Commit();
 
-                return dr;
+                DataTable _dt = fnDealNoteTime(dr.Table);
+
+                return _dt.Rows[0];
             }
             catch (Exception)
             {
@@ -389,9 +388,9 @@ select last_insert_rowid();";
 
                 if (!string.IsNullOrWhiteSpace(drNote["uTime"].ToString()))
                 {
-                    DateTime.TryParse(uTime, out DateTime ft);
-                    DateTime.TryParse(drNote["uTime"].ToString(), out DateTime dt);
-                    if (ft.ToString("yyyy-MM-dd HH:mm:ss") != dt.ToString("yyyy-MM-dd HH:mm:ss"))
+                    DateTime.TryParse(uTime, out DateTime ftime);
+                    DateTime.TryParse(drNote["uTime"].ToString(), out DateTime dtime);
+                    if (ftime.ToString("yyyy-MM-dd HH:mm:ss") != dtime.ToString("yyyy-MM-dd HH:mm:ss"))
                     {
                         throw new CustomException("Note内容已被其他终端修改，请刷新后重新修改");
                     }
@@ -412,11 +411,9 @@ select last_insert_rowid();";
 
                 tran.Commit();
 
-                dr.Table.Columns.Add("iTimeShow");
-                dr.Table.Columns.Add("uTimeShow");
-                dr["iTimeShow"] = DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
-                dr["uTimeShow"] = DateTime.Parse(dr["uTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
-                return dr;
+                DataTable _dt = fnDealNoteTime(dr.Table);
+
+                return _dt.Rows[0];
             }
             catch (Exception)
             {
@@ -473,13 +470,20 @@ select last_insert_rowid();";
             }
         }
 
-
         public DataTable fnGetNote(int userid)
         {
             string sql = "select * from tnote where userid= @userid and status = 1 order by fid desc";
             SQLiteCommand cmd = new SQLiteCommand(sql);
             SetParameters(cmd, "@userid", userid);
             DataTable dt = GetDT(cmd);
+
+            dt = fnDealNoteTime(dt);
+
+            return dt;
+        }
+
+        private DataTable fnDealNoteTime(DataTable dt)
+        {
             dt.Columns.Add("iTimeShow");
             dt.Columns.Add("uTimeShow");
             foreach (DataRow dr in dt.Rows)
@@ -490,6 +494,32 @@ select last_insert_rowid();";
             }
 
             return dt;
+        }
+
+        public DataTable fnSearchNote(int userid, string stext)
+        {
+            string sql = "select * from tnote where userid= @userid and status = 1 and content like @content order by fid desc";
+            SQLiteCommand cmd = new SQLiteCommand(sql);
+            SetParameters(cmd, "@userid", userid);
+            SetParameters(cmd, "@content", "%" + stext + "%");
+            DataTable dt = GetDT(cmd);
+
+            dt = fnDealNoteTime(dt);
+
+            return dt;
+        }
+
+        private string fnGetLikeString(string oldStr)
+        {
+            if (string.IsNullOrEmpty(oldStr))
+            {
+                return "";
+            }
+            string str2 = Regex.Replace(oldStr, @"[\[\+\\\|()^*%~#-&_]", delegate (Match match)
+            {
+                return "[" + match.Value + "]";
+            });
+            return str2;
         }
     }
 }
