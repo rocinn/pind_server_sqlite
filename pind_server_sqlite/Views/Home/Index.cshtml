@@ -19,7 +19,10 @@
         <div class="spinner-border" role="status" style="height: 25px; width: 25px"></div>
     </div>
     <div style="flex:1"></div>
-    <input id="search" class="rounded-2" placeholder="搜索" type="text" autocomplete="off" />
+    <div class="search rounded-2">
+        <input id="search" class="rounded-2" placeholder="搜索" type="text" autocomplete="off" />
+        <button type="button" class="btn-close" style="margin-right:5px;display:none;"></button>
+    </div>
 </div>
 
 <div id="notelist">
@@ -427,30 +430,39 @@
     }
 
     var m_markins = new Mark(m_nodelist)
-    var nodesearch = document.getElementById("search");
+    var m_nodesearch = document.getElementById("search");
     var isInputZh = false;
     var inputDelay = [];
-    nodesearch.addEventListener('compositionstart', function (e) {
+    m_nodesearch.addEventListener('compositionstart', function (e) {
         isInputZh = true;
     }, false);
 
-    nodesearch.addEventListener('compositionend', function (e) {
+    m_nodesearch.addEventListener('compositionend', function (e) {
         isInputZh = false;
-        console.log("compositionend", e.data);
-        filter(nodesearch.value);
+        //console.log("compositionend", e.data);
+        filter(m_nodesearch.value);
     }, false);
 
-    nodesearch.addEventListener('input', function (e) {
+    m_nodesearch.addEventListener('input', function (e) {
         if (isInputZh) return;
         let st = e.currentTarget.value
-        console.log("input", st);
+        //console.log("input", st);
         filter(st);
     }, false);
 
+    let m_close = m_nodesearch.parentNode.getElementsByClassName("btn-close")[0];
+    m_close.addEventListener('click', function (e) {
+        m_nodesearch.value = "";
+        m_close.style.display = "none";
+    }, false);
+
     function filter(input) {
+        let _st = input.toString().trim();
+        m_close.style.display = _st ? "block" : "none";
+
         var delay = setTimeout(function () {
             m_markins.unmark();
-            request("/note/search", "get", { stext: input.toString().trim() }, true).then(res => {
+            request("/note/search", "get", { stext: _st }, true).then(res => {
                 m_nodelist.innerHTML = "";
                 for (var i in res.data.arrNote) {
                     let note = res.data.arrNote[i];
@@ -462,6 +474,7 @@
             }).catch(res => { });
 
         }, 500);
+
         for (var i = 0; i < inputDelay.length; i++) {
             clearTimeout(inputDelay[i])
         }
@@ -534,15 +547,24 @@
         /*padding-right: 10px;*/
     }
 
+    .search {
+        display: flex;
+        align-items: center;
+        /* flex-flow: column; */
+        background-color: #f8f9fa;
+        /* padding-right: 5px; */
+        width: 140px;
+    }
+
     #search {
         border: 0;
         background-color: #f8f9fa;
         height: 32px;
         line-height: 32px;
         padding-left: 10px;
-        padding-right: 10px;
+        /* padding-right: 10px; */
         outline: none;
-        width: 140px;
+        width: 100%;
     }
 
     .tool {
