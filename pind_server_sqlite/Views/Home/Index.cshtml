@@ -25,6 +25,9 @@
     </div>
 </div>
 
+<div id="empty" style="font-size: -webkit-xxx-large; text-align: center; height: 70px; display:none; margin-top:100px;">╮(╯▽╰)╭</div>
+
+
 <div id="notelist">
 </div>
 
@@ -272,13 +275,13 @@
         let that = this;
         request("/note/get", "get", {}, true, 800).then(res => {
             if (res && res.code == 1) {
-
                 m_nodelist.innerHTML = "";
-
                 for (var i in res.data.arrNote) {
                     let note = res.data.arrNote[i];
                     that.fnInsertNote(note);
                 }
+
+                document.getElementById("empty").style.display = res.data.arrNote.length == 0 ? "block" : "none";
             } else {
                 that.showToast(res.message || '操作失败');
             }
@@ -454,7 +457,6 @@
     function filter(input) {
         let _st = input.toString().trim();
         m_close.style.display = _st ? "block" : "none";
-
         var delay = setTimeout(function () {
             m_markins.unmark();
             request("/note/search", "get", { stext: _st }, true).then(res => {
@@ -463,16 +465,18 @@
                     let note = res.data.arrNote[i];
                     fnInsertNote(note);
                 }
+
+                document.getElementById("empty").style.display = res.data.arrNote.length == 0 ? "block" : "none";
                 if (input) {
                     m_markins.mark(input);
                 }
             }).catch(res => { });
 
         }, 500);
-
         for (var i = 0; i < inputDelay.length; i++) {
             clearTimeout(inputDelay[i])
         }
+
         inputDelay = [];
         inputDelay.push(delay);
     }
