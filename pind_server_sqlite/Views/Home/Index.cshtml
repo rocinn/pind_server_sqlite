@@ -39,37 +39,29 @@
         m_inputtool_display = "flex";
         m_inputtool_display_timeout = "";
         m_nodelist.style.height = m_nodelist.clientHeight - 20 + "px";
+        m_lastNodelistScrollTop = m_nodelist.scrollTop;
     }
     m_nodeinput.addEventListener('focus', fninputfocus, false);
 
-    var startY_list, y_list;
     let m_inputtool_display_timeout;
-    function fnnotelisttouchSatrt(e) {
-        var touch = e.touches[0];
-        startY_list = touch.pageY;
-    }
-    function fnnotelisttouchMove(e) {
-        var touch = e.touches[0];
-        y_list = startY_list - touch.pageY; // y 上下滑动距离 以及方向 上滑 大于0 下滑小于0
-
-        if (y_list > 0) {
+    let m_lastNodelistScrollTop = 0;
+    m_nodelist.addEventListener('scroll', function (e) {
+        //console.log(e.target.scrollTop)
+        if (e.target.scrollTop > m_lastNodelistScrollTop) {
+            // 上滑
             if (m_inputtool_display == "none")
                 return;
-
             if (m_inputtool_display_timeout)
                 return;
-
             m_nodeinput.blur();
             m_inputtool_display_timeout = setTimeout(function () {
                 m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "none";
                 m_inputtool_display = "none";
                 m_nodelist.style.height = m_nodelist.clientHeight + 20 + "px";
-                m_inputtool_display_timeout = "";
             }, 200);
         }
-    }
-    m_nodelist.addEventListener('touchstart', fnnotelisttouchSatrt, false);
-    m_nodelist.addEventListener('touchmove', fnnotelisttouchMove, false);
+        m_lastNodelistScrollTop = e.target.scrollTop;
+    }, false);
 
     function fnLoading(isshow) {
         if (isshow) {
@@ -454,6 +446,7 @@
     m_close.addEventListener('click', function (e) {
         m_nodesearch.value = "";
         m_close.style.display = "none";
+        filter("");
     }, false);
 
     function filter(input) {
