@@ -157,6 +157,8 @@
         findDimensions();
     }, 500);
 
+    window.onresize = findDimensions;
+
     function pasteDeal(e) {
         e.preventDefault();
         var text;
