@@ -41,8 +41,10 @@
         m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "flex";
         m_inputtool_display = "flex";
         m_inputtool_display_timeout = "";
-        m_nodelist.style.height = m_nodelist.clientHeight - 20 + "px";
+        m_nodelist.style.height = m_nodelist.clientHeight - 33 + "px";
         m_lastNodelistScrollTop = m_nodelist.scrollTop;
+        //alert(m_nodelist.style.height + "|" + m_nodelist.clientHeight + "|" + m_nodeeditor.clientHeight + "|" + document.getElementsByTagName("body")[0].clientHeight)
+
     }
     m_nodeinput.addEventListener('focus', fninputfocus, false);
 
@@ -60,7 +62,7 @@
             m_inputtool_display_timeout = setTimeout(function () {
                 m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "none";
                 m_inputtool_display = "none";
-                m_nodelist.style.height = m_nodelist.clientHeight + 20 + "px";
+                m_nodelist.style.height = m_nodelist.clientHeight + 33 + "px";
             }, 200);
         }
         m_lastNodelistScrollTop = e.target.scrollTop;
@@ -75,6 +77,8 @@
     }
 
     function fnonrefresh(e) {
+        //alert(m_nodelist.style.height + "|" + m_nodelist.clientHeight + "|" + m_nodeeditor.clientHeight + "|" + document.getElementsByTagName("body")[0].clientHeight)
+
         fnLoading(true);
         fnGetNotes();
     }
@@ -192,6 +196,7 @@
     }
     bindPaste(m_nodeinput);
 
+    let m_cha_height = 0
     function onSaveClick(e) {
         let that = this;
         let fid = e.getAttribute("data-fid");
@@ -250,9 +255,13 @@
                 content: _content
             }, true).then(res => {
                 if (res && res.code == 1) {
+                    m_cha_height = m_nodeinput.clientHeight - 45
                     m_nodeinput.innerHTML = "";
-
                     that.fnInsertNote(res.data.arrNote[0], true);
+                    m_nodelist.style.height = m_nodelist.clientHeight + m_cha_height + "px"
+
+                    //alert(m_nodelist.style.height + "|" + m_nodelist.clientHeight + "|" + m_nodeeditor.clientHeight + "|" + document.getElementsByTagName("body")[0].clientHeight)
+                    document.getElementById("empty").style.display = "none";
                 } else {
                     that.showToast((res ? res.message : "") || '操作失败');
                 }

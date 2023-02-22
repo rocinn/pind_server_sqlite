@@ -24,6 +24,12 @@
         nodePwdHide.value = md5(nodePwd.value);
         document.getElementById("loginform").submit();
     });
+
+    @*let errorMsg = @ViewData["errorMsg"];
+    if (errorMsg) {
+        alert(errorMsg)
+    }*@
+
 </script>
 
 <style>

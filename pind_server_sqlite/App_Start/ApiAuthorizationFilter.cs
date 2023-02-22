@@ -29,8 +29,8 @@ namespace pind_server_sqlite.App_Start
                 throw new CustomException("need to login 002");
             }
 
-            ILog m_log = LogManager.GetLogger("AuthorizationFilter");
-            m_log.Error($"data: {data}");
+            ILog m_log = LogManager.GetLogger("ApiAuthorizationFilter");
+            m_log.Info($"access origin data: {(data == null ? "" : data)}");
 
             Dictionary<string, object> dicData = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
             if (dicData == null || !dicData.ContainsKey("userid") || dicData["userid"] == null || !dicData.ContainsKey("expire") || dicData["expire"] == null)

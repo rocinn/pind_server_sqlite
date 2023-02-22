@@ -16,61 +16,82 @@ namespace pind_server_sqlite.App_Start
     {
         public void OnAuthorization(AuthorizationContext filterContext)
         {
+            ILog m_log = LogManager.GetLogger("MyAuthorizationFilter");
+            string allcookie = JsonConvert.SerializeObject(HttpContext.Current.Request.Cookies);
+            m_log.Info($"allcookie:{allcookie}");
             HttpCookie accesstokenCookie = HttpContext.Current.Request.Cookies["accesstoken"];
             string ctrlName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName;
             string actionName = filterContext.ActionDescriptor.ActionName;
-            if (ctrlName.ToLower() == "home" && (actionName.ToLower() == "login"))
+            m_log.Info($"ControllerName:{ctrlName}|ActionName:{actionName}");
+            string _userid = "";
+            string _username = "";
+
+            //if (ctrlName.ToLower() == "home" && (actionName.ToLower() == "login"))
+            //{
+            //    //什么都不做
+            //}
+            //else
+            //{
+            //if (filterContext.HttpContext.["username"] == null)
+            //{
+            //    ContentResult contentResult = new ContentResult();
+            //    contentResult.Content = "没有登录";
+            //    //filterContext.Result = contentResult;
+            //    filterContext.Result = new RedirectResult("/Login/Index");
+            //}
+
+            if (accesstokenCookie == null || string.IsNullOrWhiteSpace(accesstokenCookie.Value))
             {
-                //什么都不做
+                //RedirectToLogin(filterContext);
+                //throw new CustomException("need to login 001");
+                //return;
+
+                m_log.Info($"accesstokenCookie is empty");
             }
             else
             {
-                //if (filterContext.HttpContext.["username"] == null)
-                //{
-                //    ContentResult contentResult = new ContentResult();
-                //    contentResult.Content = "没有登录";
-                //    //filterContext.Result = contentResult;
-                //    filterContext.Result = new RedirectResult("/Login/Index");
-                //}
-
-                if (accesstokenCookie == null || string.IsNullOrWhiteSpace(accesstokenCookie.Value))
-                {
-                    RedirectToLogin(filterContext);
-                    //throw new CustomException("need to login 001");
-                    return;
-                }
-
                 string access = accesstokenCookie.Value;
                 string data = AccessToken.getOriginalData(access);
+
+                m_log.Info($"access origin data: {(data == null ? "" : data)}");
                 if (string.IsNullOrWhiteSpace(data))
                 {
-                    RedirectToLogin(filterContext);
+                    //RedirectToLogin(filterContext);
                     //throw new CustomException("need to login 002");
-                    return;
+                    //return;
                 }
-
-                ILog m_log = LogManager.GetLogger("AuthorizationFilter");
-                m_log.Error($"data: {data}");
-
-                Dictionary<string, object> dicData = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
-                if (dicData == null || !dicData.ContainsKey("userid") || dicData["userid"] == null || !dicData.ContainsKey("expire") || dicData["expire"] == null)
+                else
                 {
-                    RedirectToLogin(filterContext);
-                    //throw new CustomException("need to login 003");
-                    return;
-                }
+                    Dictionary<string, object> dicData = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
+                    if (dicData == null || !dicData.ContainsKey("userid") || dicData["userid"] == null || !dicData.ContainsKey("expire") || dicData["expire"] == null)
+                    {
+                        //RedirectToLogin(filterContext);
+                        //throw new CustomException("need to login 003");
+                        //return;
+                    }
+                    else
+                    {
+                        DateTime.TryParse(dicData["expire"].ToString(), out DateTime dee);
+                        if (dee < DateTime.Now)
+                        {
+                            //RedirectToLogin(filterContext);
+                            //throw new CustomException($"need to login 004: {dee.ToString("yyyy-MM-dd HH:mm:ss")}");
+                            //return;
 
-                DateTime.TryParse(dicData["expire"].ToString(), out DateTime dee);
-                if (dee < DateTime.Now)
-                {
-                    RedirectToLogin(filterContext);
-                    //throw new CustomException($"need to login 004: {dee.ToString("yyyy-MM-dd HH:mm:ss")}");
-                    return;
-                }
 
-                HttpContext.Current.Items.Add("userid", dicData["userid"].ToString());
-                HttpContext.Current.Items.Add("name", dicData["name"].ToString());
+                        }
+                        else
+                        {
+                            _userid = dicData["userid"].ToString();
+                            _username = dicData["name"].ToString();
+                        }
+                    }
+                }
             }
+
+            HttpContext.Current.Items.Add("userid", _userid);
+            HttpContext.Current.Items.Add("name", _username);
+            //}
         }
 
         private void RedirectToLogin(AuthorizationContext filterContext)

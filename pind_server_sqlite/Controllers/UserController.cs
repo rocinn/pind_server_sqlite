@@ -28,10 +28,10 @@ namespace pind_server_sqlite.Controllers
 
             HttpCookie cookie = new HttpCookie("accesstoken", "")
             {
-                Expires = DateTime.Now.AddDays(1),
+                Expires = DateTime.Now.AddMilliseconds(-1),
                 Secure = true,
                 HttpOnly = true,
-                SameSite = SameSiteMode.Strict
+                SameSite = SameSiteMode.Lax
             };
 
             HttpContext.Current.Response.Cookies.Add(cookie);

@@ -22,10 +22,12 @@ namespace pind_server_sqlite.Controllers
             object userid = HttpContext.Items["userid"];
             if (userid == null || string.IsNullOrWhiteSpace(userid.ToString()))
             {
-                return RedirectToAction("Login");
+                //return RedirectToAction("Login");
+
+                Response.Redirect("/Home/Login");
             }
 
-            DataTable dt = SqliteHelper.GetInstance().fnGetNote(1);
+            DataTable dt = SqliteHelper.GetInstance().fnGetNote(Convert.ToInt32(userid));
             ViewBag.dtNotes = dt;
 
             return View();
@@ -34,10 +36,19 @@ namespace pind_server_sqlite.Controllers
         //[HttpPost]
         public ActionResult Login([Bind(Include = "Username,Password")] Login lg)
         {
-            if (string.IsNullOrWhiteSpace(lg.Username) || string.IsNullOrWhiteSpace(lg.Password))
+            object userid = HttpContext.Items["userid"];
+            if (userid == null || string.IsNullOrWhiteSpace(userid.ToString()))
             {
-                //throw new CustomException("参数错误");
-                return View();
+                if (string.IsNullOrWhiteSpace(lg.Username) || string.IsNullOrWhiteSpace(lg.Password))
+                {
+                    //throw new CustomException("参数错误");
+                    return View();
+                }
+            }
+            else
+            {
+                Response.Redirect("/");
+                //return View("Index");
             }
 
             try
@@ -48,7 +59,7 @@ namespace pind_server_sqlite.Controllers
                     Expires = DateTime.Now.AddDays(1),
                     Secure = true,
                     HttpOnly = true,
-                    SameSite = SameSiteMode.Strict
+                    SameSite = SameSiteMode.Lax
                 };
 
                 Response.Cookies.Add(cookie);
@@ -57,6 +68,7 @@ namespace pind_server_sqlite.Controllers
             }
             catch (Exception ex)
             {
+                //ViewData["errorMsg"] = ex.Message;
                 return View();
             }
         }

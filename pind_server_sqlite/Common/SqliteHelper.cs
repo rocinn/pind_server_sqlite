@@ -46,7 +46,7 @@ create unique index if not exists tuser_index_name on tuser (name);";
                 {
                     sql = "insert into tuser (name, pwd) values (@name, @pwd)";
                     cmd = new SQLiteCommand(sql, con, tran);
-                    SetParameters(cmd, "@name", "admin");
+                    SetParameters(cmd, "@name", "pind");
                     SetParameters(cmd, "@pwd", Util.GetMD5_16_x2("pind.!@#.com"));
                     cmd.ExecuteNonQuery();
                 }
