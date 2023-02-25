@@ -6,7 +6,7 @@
 <div class="editor border border-light rounded-3 bg-light">
     <div id="input" class="input" contenteditable="true" placeholder="要记些什么呢..." spellcheck="false"></div>
     <div class="tool">
-        <img class="selectImg" src="/Images/bxs-image.png" onclick="fnSelectImage(this)" />
+        @*<img class="selectImg" src="/Images/bxs-image.png" onclick="fnSelectImage(this)" />*@
         <div style="flex:1"></div>
         <button type="button" class="btn btn-dark btnSelf" onclick="onSaveClick(this)"><img src="/Images/shandian-48.png" style="height: 25px" /></button>
     </div>
@@ -31,17 +31,21 @@
 <div id="notelist">
 </div>
 
+
+
 <script>
     var m_nodeeditor = document.getElementsByClassName('editor')[0];
     var m_nodeinput = document.getElementById('input');
     var m_nodelist = document.getElementById('notelist');
     var m_inputtool_display = "";
+    //var toolHeight_input = document.getElementsByClassName('tool')[0].clientHeight;
+    var toolHeight_input = 25;
 
     function fninputfocus() {
         m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "flex";
         m_inputtool_display = "flex";
         m_inputtool_display_timeout = "";
-        m_nodelist.style.height = m_nodelist.clientHeight - 33 + "px";
+        m_nodelist.style.height = m_nodelist.clientHeight - toolHeight_input + "px";
         m_lastNodelistScrollTop = m_nodelist.scrollTop;
         //alert(m_nodelist.style.height + "|" + m_nodelist.clientHeight + "|" + m_nodeeditor.clientHeight + "|" + document.getElementsByTagName("body")[0].clientHeight)
 
@@ -62,7 +66,7 @@
             m_inputtool_display_timeout = setTimeout(function () {
                 m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "none";
                 m_inputtool_display = "none";
-                m_nodelist.style.height = m_nodelist.clientHeight + 33 + "px";
+                m_nodelist.style.height = m_nodelist.clientHeight + toolHeight_input + "px";
             }, 200);
         }
         m_lastNodelistScrollTop = e.target.scrollTop;
@@ -83,8 +87,97 @@
         fnGetNotes();
     }
 
-    function fnSelectImage(e) {
-        showToast("还没有实现上传图片😂");
+    function fnuploadpindfile(e) {
+        let fid = e.getAttribute("data-fid");
+
+        console.log(e)
+
+        const fileData = e.files[0];
+        let read = new FileReader();
+        read.readAsDataURL(fileData);
+        read.onload = (er) => {
+            request("/note/upfile", "post", {
+                noteid: fid,
+                name: fileData.name,
+                type: fileData.type,
+                size: fileData.size,
+                base64: read.result
+            }, true).then(res => {
+                if (res.code == 1) {
+
+                    let nodefilelist = e.parentNode.parentNode.parentNode.getElementsByClassName("filelist")[0];
+                    nodefilelist.style.setProperty('display', 'block', 'important');
+
+                    let nodefileitem = document.createElement("div");
+                    //let str = "<div class='fileitem' onclick='downloadFile(this)' data-noteid='" + fid + "' data-fileid='" + res.data.id + "'>" + fileData.name + "</div>";
+                    nodefileitem.setAttribute("class", "dropdown")
+
+                        //nodefileitem.setAttribute("data-noteid", fid)
+                        //nodefileitem.setAttribute("data-fileid", res.data.id)
+
+                    let html = ''
+                    html += "<text class='fileitem type='button' dropdown-toggle' data-bs-toggle='dropdown' aria-expanded='false'>" + fileData.name + "</text>";
+                    html += "<ul class='dropdown-menu' data-noteid='" + fid + "' data-fileid='" + res.data.id + "'><li><a class='dropdown-item' onclick='downloadFile(this)'>下载</a></li><li><a class='dropdown-item' onclick='deleteFile(this)'>删除</a></li></ul>";
+
+                    nodefileitem.innerHTML = html
+
+                    nodefilelist.appendChild(nodefileitem);
+
+                    showToast("上传成功✅");
+                } else {
+                    showToast(res.data.message || "上传失败❌");
+                }
+
+            }).catch(res => {
+
+            })
+        }
+    }
+
+    async function fnSelectImage(e) {
+        //let fid = e.getAttribute("data-fid");
+
+        e.parentNode.getElementsByClassName("filepindupload")[0].click();
+
+
+        //const arrFileHandle = await window.showOpenFilePicker({
+        //    multiple: false
+        //});
+
+        //const fileData = await arrFileHandle[0].getFile();
+        //let read = new FileReader();
+        //read.readAsDataURL(fileData);
+        //read.onload = (er) => {
+        //    request("/note/upfile", "post", {
+        //        noteid: fid,
+        //        name: fileData.name,
+        //        type: fileData.type,
+        //        size: fileData.size,
+        //        base64: read.result
+        //    }, true).then(res => {
+        //        if (res.code == 1) {
+
+        //            let nodefilelist = e.parentNode.parentNode.parentNode.getElementsByClassName("filelist")[0];
+
+        //            let nodefileitem = document.createElement("div");
+        //            //let str = "<div class='fileitem' onclick='downloadFile(this)' data-noteid='" + fid + "' data-fileid='" + res.data.id + "'>" + fileData.name + "</div>";
+        //            nodefileitem.setAttribute("class", "fileitem")
+        //            nodefileitem.setAttribute("onclick", "downloadFile(this)")
+        //            nodefileitem.setAttribute("data-noteid", fid)
+        //            nodefileitem.setAttribute("data-fileid", res.data.id)
+        //            nodefileitem.innerText = fileData.name
+
+        //            nodefilelist.appendChild(nodefileitem);
+
+        //            showToast("上传成功✅");
+        //        } else {
+        //            showToast(res.data.message || "上传失败❌");
+        //        }
+
+        //    }).catch(res => {
+
+        //    })
+        //}
     }
 
     function request(url, method, data, isshowloading = false, loadingtime = 0) {
@@ -307,12 +400,35 @@
         div.setAttribute("data-fid", note["fid"]);
         div.setAttribute("data-uTime", note["uTimeShow"]);
 
-        let str = "<div class='contentP'><div class='oprator'><div class='noteTime text-secondary'>" + note["iTimeShow"] +
-            "</div><div style='flex:1'></div>" +
+        let str = "<div class='contentP'><div class='oprator'>" +
+            "<div class='noteTime text-secondary'>" + note["iTimeShow"] + "</div>" +
+            "<div style='flex:1'></div>" +
+            "<button class='file btn btn-light btnSelf' data-fid='" + note["fid"] + "' onclick='fnSelectImage(this)' style='margin-right:5px;'><img src='/Images/file.png' style='height: 25px;' /></button>" +
+            "<input style='display: none' type='file' class='filepindupload' data-fid='" + note["fid"] + "' onchange='fnuploadpindfile(this)'/>" +
             "<button class='delete btn btn-light btnSelf' onclick='fndeleteClick(this)' style='margin-right:5px;'><img src='/Images/delete.png' style='height: 25px;' /></button>" +
             "<button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)'><img src='/Images/edit.png' style='height: 25px' /></button>" +
             "</div>";
-        str += ("<div class='content'>" + (note["htmlcontent"] || note["content"]) + "</div>");
+        str += ("<div class='content'>" + (note["htmlcontent"] || note["content"]) + "</div></div>");
+
+        str += "<div class='reEdit' style='display:none'><div class='input' contenteditable='true' spellcheck='false'>" + (note["htmlcontent"] || note["content"]) + "</div><div class='tool'>" +
+            //"<img class='selectImg' data-fid='" + note["fid"] + "' src='/Images/bxs-image.png' onclick='fnSelectImage(this)'/>" +
+            "<div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + note["fid"] + "' data-uTime='" + note["uTimeShow"] + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div></div>"
+
+
+        let filelist = "<div class='filelist'" + ((!note["files"] || note["files"].length == 0) ? " style='display:none' " : "") + ">";
+
+        if (note["files"]) {
+            for (var i = 0; i < note["files"].length; i++) {
+                filelist += "<div class='dropdown'><text class='fileitem type='button' dropdown-toggle' data-bs-toggle='dropdown' aria-expanded='false'>" + note["files"][i].name + "</text>";
+                filelist += "<ul class='dropdown-menu' data-noteid='" + note["fid"] + "' data-fileid='" + note["files"][i].fid + "'><li><a class='dropdown-item' onclick='downloadFile(this)'>下载</a></li><li><a class='dropdown-item' onclick='deleteFile(this)'>删除</a></li></ul>";
+                filelist += "</div>";
+            }
+        }
+
+        filelist += "</div>";
+
+        str += filelist
+
         div.innerHTML = str;
 
         if (isfirst) {
@@ -324,15 +440,59 @@
         } else {
             m_nodelist.appendChild(div);
         }
+
+        bindPaste(div.getElementsByClassName("reEdit")[0].getElementsByClassName("input")[0]);
     }
     fnGetNotes();
+
+    function downloadFile(e) {
+        let noteid = e.parentNode.parentNode.getAttribute("data-noteid");
+        let fileid = e.parentNode.parentNode.getAttribute("data-fileid");
+        request("/note/dlfile", "get", {
+            noteid: noteid,
+            fileid: fileid
+        }, true).then(res => {
+            const a = document.createElement("a");
+            a.style.dispaly = 'none';
+            a.href = res.data.base64;
+            a.download = res.data.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }).catch(res => {
+
+        })
+    }
+
+    function deleteFile(e) {
+        let noteid = e.parentNode.parentNode.getAttribute("data-noteid");
+        let fileid = e.parentNode.parentNode.getAttribute("data-fileid");
+        function deleteF(event) {
+            request("/note/delFile?noteid=" + noteid + "&fileid=" + fileid, "post", {}, true).then(res => {
+                if (res.code == 1) {
+                    let nodefileitem = e.parentNode.parentNode.parentNode;
+                    let nodefilelist = nodefileitem.parentNode;
+                    nodefilelist.removeChild(nodefileitem);
+
+                    if (nodefilelist.children.length == 0) {
+                        nodefilelist.style.setProperty('display', 'none', 'important');
+                    }
+                } else {
+                    that.showToast(res.message || '操作失败');
+                }
+            }).catch(res => {
+
+            })
+        }
+        showModelYesNo("确认删除文件？", deleteF);
+    }
 
     function fndeleteClick(e) {
         let nodeContentP = e.parentNode.parentNode;
         let nodeNote = nodeContentP.parentNode;
         let fid = nodeNote.getAttribute("data-fid");
 
-        function yes(event) {
+        function deleteNote(event) {
             request("/note/del", "post", { fid: fid }, true).then(res => {
                 if (res.code == 1) {
                     nodeNote.parentNode.removeChild(nodeNote);
@@ -343,7 +503,7 @@
 
             })
         }
-        showModelYesNo("确认删除？", yes);
+        showModelYesNo("确认删除笔记？", deleteNote);
     }
 
     function fntoEditClick(e) {
@@ -356,16 +516,16 @@
         let uTime = nodeNote.getAttribute("data-uTime");
 
         let nodeReEdit = nodeNote.getElementsByClassName("reEdit")[0];
-        if (nodeReEdit) {
-            nodeReEdit.style.display = "block";
-            nodeReEdit.getElementsByClassName("input")[0].innerHTML = (originHtmlContent || originContent);
-        } else {
-            let div = document.createElement("div");
-            div.setAttribute("class", "reEdit");
-            div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + (originHtmlContent || originContent) + "</div><div class='tool'><img class='selectImg' src='/Images/bxs-image.png' onclick='fnSelectImage(this)'/><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
-            nodeNote.appendChild(div);
-            bindPaste(div.getElementsByClassName("input")[0]);
-        }
+        //if (nodeReEdit) {
+        nodeReEdit.style.display = "block";
+        nodeReEdit.getElementsByClassName("input")[0].innerHTML = (originHtmlContent || originContent);
+        //} else {
+        //    let div = document.createElement("div");
+        //    div.setAttribute("class", "reEdit");
+        //    div.innerHTML = "<div class='input' contenteditable='true' spellcheck='false'>" + (originHtmlContent || originContent) + "</div><div class='tool'><img class='selectImg' data-fid='" + fid + "' src='/Images/bxs-image.png' onclick='fnSelectImage(this)'/><div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + fid + "' data-uTime='" + uTime + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div>";
+        //    nodeNote.appendChild(div);
+        //    bindPaste(div.getElementsByClassName("input")[0]);
+        //}
 
         nodeContentP.style.display = "none";
     }
@@ -639,5 +799,17 @@
     .content {
         overflow-wrap: break-word;
         line-height: 22px;
+    }
+
+    .filelist {
+        padding-top: 5px;
+        text-decoration: underline;
+        border-top: 1px #ebebeb solid;
+        margin-left: 10px;
+        margin-top: 5px;
+    }
+
+    .fileitem {
+        cursor: pointer;
     }
 </style>

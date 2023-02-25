@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
-using System.IO;
-using System.Linq;
-using System.Net.Configuration;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Web;
 using Newtonsoft.Json;
@@ -15,6 +10,17 @@ namespace pind_server_sqlite.Common
     public class SqliteHelper
     {
         private static SqliteHelper m_instance;
+
+        public static SqliteHelper GetInstance()
+        {
+            if (m_instance == null)
+            {
+                m_instance = new SqliteHelper();
+            }
+
+            return m_instance;
+        }
+
 
         private SqliteHelper()
         {
@@ -122,13 +128,17 @@ create index if not exists tnoteTag_index_tag on tnoteTag (tag);";
                 cmd = new SQLiteCommand(sql, con, tran);
                 cmd.ExecuteNonQuery();
 
-                sql = @"create table if not exists tnoteImage(
+                sql = @"create table if not exists tnoteFile(
 fid integer primary key autoincrement not null,
 noteid integer,
-imageByte blob,
+name nvarchar(300),
+type varchar(100),
+size integer,
+md5base64 varchar(100),
+relativePath varchar(500),
 status integer default 1,
 iTime datetime default (datetime('now', 'localtime')) );
-create index if not exists tnoteImage_index_noteid on tnoteImage (noteid);";
+create index if not exists tnoteFile_index_noteid on tnoteFile (noteid);";
                 cmd = new SQLiteCommand(sql, con, tran);
                 cmd.ExecuteNonQuery();
 
@@ -152,7 +162,7 @@ create index if not exists tnoteImage_index_noteid on tnoteImage (noteid);";
         {
             string dbfilepath = HttpRuntime.AppDomainAppPath + "pind.db";
             string dbPath = "Data Source =" + dbfilepath;
-            if (!File.Exists(dbfilepath))
+            if (!System.IO.File.Exists(dbfilepath))
             {
                 SQLiteConnection.CreateFile(dbfilepath);
             }
@@ -206,6 +216,14 @@ create index if not exists tnoteImage_index_noteid on tnoteImage (noteid);";
 
         private DataRow GetRow(SQLiteCommand cmd)
         {
+            SQLiteConnection con = null;
+            if (cmd.Connection == null)
+            {
+                con = GetConnection();
+                con.Open();
+                cmd.Connection = con;
+            }
+
             DataTable dt = new DataTable();
             using (SQLiteDataReader reader = cmd.ExecuteReader())
             {
@@ -218,6 +236,14 @@ create index if not exists tnoteImage_index_noteid on tnoteImage (noteid);";
 
         private string GetString(SQLiteCommand cmd)
         {
+            SQLiteConnection con = null;
+            if (cmd.Connection == null)
+            {
+                con = GetConnection();
+                con.Open();
+                cmd.Connection = con;
+            }
+
             DataTable dt = new DataTable();
             using (SQLiteDataReader reader = cmd.ExecuteReader())
             {
@@ -228,16 +254,19 @@ create index if not exists tnoteImage_index_noteid on tnoteImage (noteid);";
             return dt != null && dt.Rows.Count > 0 ? dt.Rows[0][0].ToString() : null;
         }
 
-        public static SqliteHelper GetInstance()
+        private int ExecuteNonQuery(SQLiteCommand cmd)
         {
-            if (m_instance == null)
+            SQLiteConnection con = null;
+            if (cmd.Connection == null)
             {
-                m_instance = new SqliteHelper();
+                con = GetConnection();
+                con.Open();
+                cmd.Connection = con;
             }
 
-            return m_instance;
+            return cmd.ExecuteNonQuery();
         }
-
+        
         public DataTable fnGetUsers()
         {
             string sql = "select name from tuser where status = 1";
@@ -470,16 +499,26 @@ select last_insert_rowid();";
             }
         }
 
-        public DataTable fnGetNote(int userid)
+        public DataSet fnGetNote(int userid)
         {
             string sql = "select * from tnote where userid= @userid and status = 1 order by fid desc";
             SQLiteCommand cmd = new SQLiteCommand(sql);
             SetParameters(cmd, "@userid", userid);
-            DataTable dt = GetDT(cmd);
+            DataTable dtNote = GetDT(cmd);
 
-            dt = fnDealNoteTime(dt);
+            dtNote = fnDealNoteTime(dtNote);
+            dtNote.TableName = "note";
 
-            return dt;
+            sql = "select * from tnoteFile where status = 1 ";
+            cmd = new SQLiteCommand(sql);
+            DataTable dtFile = GetDT(cmd);
+            dtFile.TableName = "file";
+
+            DataSet ds = new DataSet();
+            ds.Tables.Add(dtNote);
+            ds.Tables.Add(dtFile);
+
+            return ds;
         }
 
         private DataTable fnDealNoteTime(DataTable dt)
@@ -496,17 +535,28 @@ select last_insert_rowid();";
             return dt;
         }
 
-        public DataTable fnSearchNote(int userid, string stext)
+        public DataSet fnSearchNote(int userid, string stext)
         {
             string sql = "select * from tnote where userid= @userid and status = 1 and content like @content order by fid desc";
             SQLiteCommand cmd = new SQLiteCommand(sql);
             SetParameters(cmd, "@userid", userid);
             SetParameters(cmd, "@content", "%" + stext + "%");
-            DataTable dt = GetDT(cmd);
+            DataTable dtNote = GetDT(cmd);
 
-            dt = fnDealNoteTime(dt);
+            dtNote = fnDealNoteTime(dtNote);
+            dtNote.TableName = "note";
 
-            return dt;
+            sql = "select a.* from tnoteFile a left join tnote b and b.fid = a.noteid where a.status = 1 and b.userid = @userid and b.status = 1";
+            cmd = new SQLiteCommand(sql);
+            SetParameters(cmd, "@userid", userid);
+            DataTable dtFile = GetDT(cmd);
+            dtFile.TableName = "file";
+
+            DataSet ds = new DataSet();
+            ds.Tables.Add(dtNote);
+            ds.Tables.Add(dtFile);
+
+            return ds;
         }
 
         private string fnGetLikeString(string oldStr)
@@ -520,6 +570,90 @@ select last_insert_rowid();";
                 return "[" + match.Value + "]";
             });
             return str2;
+        }
+
+        public int fnAddNoteFileInfo(int userid, int noteid, string name, string type, int size, string relativePath, string md5base64)
+        {
+            SQLiteConnection con = GetConnection();
+            SQLiteTransaction tran = null;
+            SQLiteCommand cmd = null;
+            string sql = "";
+            DateTime now = DateTime.Now;
+            try
+            {
+                con.Open();
+                tran = con.BeginTransaction();
+
+                sql = "select * from tuser where status = 1 and fid = @userid ";
+                cmd = new SQLiteCommand(sql, con, tran);
+                SetParameters(cmd, "@userid", userid);
+                DataRow drUser = GetRow(cmd);
+                if (drUser == null)
+                    throw new CustomException("账号不存在");
+
+                sql = "select * from tnote where fid = @fid and status = 1";
+                cmd = new SQLiteCommand(sql, con, tran);
+                SetParameters(cmd, "@fid", noteid);
+                DataRow drNote = GetRow(cmd);
+                if (drNote == null)
+                    throw new CustomException("Note不存在");
+
+                if (userid != Convert.ToInt32(drNote["userid"]))
+                {
+                    throw new CustomException("数据校验失败");
+                }
+
+                sql = @"insert into tnoteFile (noteid,name,type,size,md5base64,relativePath,status,iTime) 
+values (@noteid,@name,@type,@size,@md5base64,@relativePath,1,@iTime); 
+select last_insert_rowid();";
+                cmd = new SQLiteCommand(sql, con, tran);
+                SetParameters(cmd, "@noteid", noteid);
+                SetParameters(cmd, "@name", name);
+                SetParameters(cmd, "@type", type);
+                SetParameters(cmd, "@size", size);
+                SetParameters(cmd, "@md5base64", md5base64);
+                SetParameters(cmd, "@relativePath", relativePath);
+                SetParameters(cmd, "@iTime", now);
+                string id = GetString(cmd);
+
+                tran.Commit();
+
+                return Convert.ToInt32(id);
+            }
+            catch (Exception)
+            {
+                Rollback(tran);
+                throw;
+            }
+            finally
+            {
+                Close(con);
+            }
+        }
+
+        public DataRow fnGetNoteFileinfo(int userid, int noteid, int fileid)
+        {
+            string sql = @"select * from tnoteFile a 
+left join tnote b on b.fid = a.noteid 
+where a.status = 1 and b.status = 1 and a.fid = @fileid and a.noteid = @noteid and b.userid = @userid";
+            SQLiteCommand cmd = new SQLiteCommand(sql);
+            SetParameters(cmd, "@userid", userid);
+            SetParameters(cmd, "@noteid", noteid);
+            SetParameters(cmd, "@fileid", fileid);
+
+            return GetRow(cmd);
+        }
+
+        public void fnDeleteNoteFile(int userid, int noteid, int fileid)
+        {
+            DataRow dr = fnGetNoteFileinfo(userid, noteid, fileid);
+            if (dr == null)
+                throw new CustomException("文件不存在");
+
+            string sql = "update tnoteFile set status = 0 where fid = @fileid";
+            SQLiteCommand cmd = new SQLiteCommand(sql);
+            SetParameters(cmd, "@fileid", fileid);
+            ExecuteNonQuery(cmd);
         }
     }
 }

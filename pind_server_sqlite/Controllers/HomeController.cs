@@ -22,18 +22,12 @@ namespace pind_server_sqlite.Controllers
             object userid = HttpContext.Items["userid"];
             if (userid == null || string.IsNullOrWhiteSpace(userid.ToString()))
             {
-                //return RedirectToAction("Login");
-
-                Response.Redirect("/Home/Login");
+                return RedirectToAction("Login");
             }
-
-            DataTable dt = SqliteHelper.GetInstance().fnGetNote(Convert.ToInt32(userid));
-            ViewBag.dtNotes = dt;
 
             return View();
         }
 
-        //[HttpPost]
         public ActionResult Login([Bind(Include = "Username,Password")] Login lg)
         {
             object userid = HttpContext.Items["userid"];
@@ -47,8 +41,7 @@ namespace pind_server_sqlite.Controllers
             }
             else
             {
-                Response.Redirect("/");
-                //return View("Index");
+                return RedirectToAction("Index");
             }
 
             try

@@ -25,7 +25,7 @@ namespace pind_server_sqlite.App_Start
             }
             else
             {
-                msg = "操作失败";
+                msg = "ERROR";
             }
 
             var data = new

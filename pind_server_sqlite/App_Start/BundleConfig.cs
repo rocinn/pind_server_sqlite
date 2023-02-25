@@ -21,7 +21,7 @@ namespace pind_server_sqlite.App_Start
                         "~/Scripts/jquery-{version}.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
-                      "~/Scripts/bootstrap.js"));
+                      "~/Scripts/bootstrap.bundle.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/common").Include(
                       "~/Scripts/md5.min.js",
