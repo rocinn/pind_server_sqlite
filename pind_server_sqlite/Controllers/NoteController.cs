@@ -92,7 +92,8 @@ namespace pind_server_sqlite.Controllers
                     lstFile.Add(new
                     {
                         fid = drFile["fid"],
-                        name = drFile["name"]
+                        name = drFile["name"],
+                        md5 = drFile["md5base64"]
                     });
                 }
                 dicData.Add("files", lstFile);
@@ -134,7 +135,8 @@ namespace pind_server_sqlite.Controllers
                     lstFile.Add(new
                     {
                         fid = drFile["fid"],
-                        name = drFile["name"]
+                        name = drFile["name"],
+                        md5 = drFile["md5base64"]
                     });
                 }
                 dicData.Add("files", lstFile);
