@@ -546,7 +546,7 @@ select last_insert_rowid();";
             dtNote = fnDealNoteTime(dtNote);
             dtNote.TableName = "note";
 
-            sql = "select a.* from tnoteFile a left join tnote b and b.fid = a.noteid where a.status = 1 and b.userid = @userid and b.status = 1";
+            sql = "select a.* from tnoteFile a left join tnote b on b.fid = a.noteid where a.status = 1 and b.userid = @userid and b.status = 1";
             cmd = new SQLiteCommand(sql);
             SetParameters(cmd, "@userid", userid);
             DataTable dtFile = GetDT(cmd);
