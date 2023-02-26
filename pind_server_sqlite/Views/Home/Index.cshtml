@@ -34,6 +34,7 @@
 
 
 <script>
+    var m_window = window;
     var m_nodeeditor = document.getElementsByClassName('editor')[0];
     var m_nodeinput = document.getElementById('input');
     var m_nodelist = document.getElementById('notelist');
@@ -90,8 +91,7 @@
     function fnuploadpindfile(e) {
         let fid = e.getAttribute("data-fid");
 
-        console.log(e)
-
+        //console.log(e)
         const fileData = e.files[0];
         let read = new FileReader();
         read.readAsDataURL(fileData);
@@ -110,24 +110,22 @@
                     nodefilelist.style.setProperty('display', 'block', 'important');
 
                     let nodefileitem = document.createElement("div");
-                    //let str = "<div class='fileitem' onclick='downloadFile(this)' data-noteid='" + fid + "' data-fileid='" + res.data.id + "'>" + fileData.name + "</div>";
-                    nodefileitem.setAttribute("class", "dropdown")
+                    nodefileitem.setAttribute("class", "text-truncate")
 
-                    //nodefileitem.setAttribute("data-noteid", fid)
-                    //nodefileitem.setAttribute("data-fileid", res.data.id)
+                    let nodetext = document.createElement("text");
+                    nodetext.setAttribute("class", "fileitem")
+                    nodetext.setAttribute("data-noteid", fid)
+                    nodetext.setAttribute("data-fileid", res.data.id)
+                    nodetext.setAttribute("data-md5", md5(read.result))
+                    nodetext.setAttribute("onclick", 'fnclickFile(this)')
+                    nodetext.innerText = fileData.name
 
-                    let html = ''
-                    html += "<text class='fileitem type='button' dropdown-toggle' data-bs-toggle='dropdown' aria-expanded='false'>" + fileData.name + "</text>";
-                    html += "<ul class='dropdown-menu' data-noteid='" + fid + "' data-fileid='" + res.data.id + "' data-md5='" + _filemd5 + "'><li><a class='dropdown-item' onclick='downloadFile(this)'>下载</a></li><li><a class='dropdown-item' onclick='deleteFile(this)'>删除</a></li></ul>";
-
-                    nodefileitem.innerHTML = html
-
+                    nodefileitem.appendChild(nodetext);
                     nodefilelist.appendChild(nodefileitem);
 
                     showToast("上传成功✅");
 
-                    let _filemd5 = md5(read.result)
-                    window.localStorage.setItem("file_" + _filemd5, { "base64": read.result, "name": fileData.name })
+                    //m_window.localStorage.setItem("file_" + _filemd5, JSON.stringify({ "base64": read.result, "name": fileData.name }))
                 } else {
                     showToast(res.data.message || "上传失败❌");
                 }
@@ -372,18 +370,23 @@
             "</div>";
         str += ("<div class='content'>" + (note["htmlcontent"] || note["content"]) + "</div></div>");
 
-        str += "<div class='reEdit' style='display:none'><div class='input' contenteditable='true' spellcheck='false'>" + (note["htmlcontent"] || note["content"]) + "</div><div class='tool'>" +
-            //"<img class='selectImg' data-fid='" + note["fid"] + "' src='/Images/bxs-image.png' onclick='fnSelectImage(this)'/>" +
-            "<div style='flex:1'></div><button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton><button type='button' class='btn btn-dark btnSelf' data-fid='" + note["fid"] + "' data-uTime='" + note["uTimeShow"] + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button></div></div>"
+        str += "<div class='reEdit' style='display:none'>" +
 
+            "<div class='tool'>" +
+            "<div style='flex:1'></div>" +
+            "<button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton>" +
+            "<button type='button' class='btn btn-dark btnSelf' data-fid='" + note["fid"] + "' data-uTime='" + note["uTimeShow"] + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button>" +
+            "</div>" +
+
+            "<div class='input reinput' contenteditable='true' spellcheck='false'>" + (note["htmlcontent"] || note["content"]) + "</div>" +
+
+            "</div>"
 
         let filelist = "<div class='filelist'" + ((!note["files"] || note["files"].length == 0) ? " style='display:none' " : "") + ">";
 
         if (note["files"]) {
             for (var i = 0; i < note["files"].length; i++) {
-                filelist += "<div class='dropdown'><text class='fileitem type='button' dropdown-toggle' data-bs-toggle='dropdown' aria-expanded='false'>" + note["files"][i].name + "</text>";
-                filelist += "<ul class='dropdown-menu' data-noteid='" + note["fid"] + "' data-fileid='" + note["files"][i].fid + "' data-md5='" + note["files"][i].md5 + "'><li><a class='dropdown-item' onclick='downloadFile(this)'>下载</a></li><li><a class='dropdown-item' onclick='deleteFile(this)'>删除</a></li></ul>";
-                filelist += "</div>";
+                filelist += "<div class='text-truncate'><text class='fileitem' data-noteid='" + note["fid"] + "' data-fileid='" + note["files"][i].fid + "' data-md5='" + note["files"][i].md5 + "' onclick='fnclickFile(this)'>" + note["files"][i].name + "</text></div>";
             }
         }
 
@@ -407,18 +410,26 @@
     }
     fnGetNotes();
 
-    function downloadFile(e) {
-        let noteid = e.parentNode.parentNode.getAttribute("data-noteid");
-        let fileid = e.parentNode.parentNode.getAttribute("data-fileid");
-        let md5file = e.parentNode.parentNode.getAttribute("data-md5");
-        let localStorageFileInfo = window.localStorage.getItem("file_" + md5file)
-        if (!localStorageFileInfo) {
+    function fnclickFile(e) {
+        let noteid = e.getAttribute("data-noteid");
+        let fileid = e.getAttribute("data-fileid");
+        let md5file = e.getAttribute("data-md5");
+
+        e.style.color = "#bc4048"
+        setTimeout(function () {
+            e.style.color = "black"
+        }, 1000)
+
+        function downloadFile() {
+
+            //let localStorageFileInfo = m_window.localStorage.getItem("file_" + md5file)
+            //if (!localStorageFileInfo) {
             request("/note/dlfile", "get", {
                 noteid: noteid,
                 fileid: fileid
             }, true).then(res => {
-                let _filemd5 = md5(res.data.base64)
-                window.localStorage.setItem("file_" + _filemd5, JSON.stringify({ "base64": res.data.base64, "name": res.data.name }))
+                //let _filemd5 = md5(res.data.base64)
+                //m_window.localStorage.setItem("file_" + _filemd5, JSON.stringify({ "base64": res.data.base64, "name": res.data.name }))
 
                 const a = document.createElement("a");
                 a.style.dispaly = 'none';
@@ -430,41 +441,37 @@
             }).catch(res => {
 
             })
-        } else {
-            console.log("走了本地存储")
-            let _file = JSON.parse(localStorageFileInfo);
-            const a = document.createElement("a");
-            a.style.dispaly = 'none';
-            a.href = _file.base64;
-            a.download = _file.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            //} else {
+            //    console.log("走了本地存储")
+            //    let _file = JSON.parse(localStorageFileInfo);
+            //    const a = document.createElement("a");
+            //    a.style.dispaly = 'none';
+            //    a.href = _file.base64;
+            //    a.download = _file.name;
+            //    document.body.appendChild(a);
+            //    a.click();
+            //    document.body.removeChild(a);
+            //}
         }
-    }
 
-    function deleteFile(e) {
-        let noteid = e.parentNode.parentNode.getAttribute("data-noteid");
-        let fileid = e.parentNode.parentNode.getAttribute("data-fileid");
-        function deleteF(event) {
-            request("/note/delFile?noteid=" + noteid + "&fileid=" + fileid, "post", {}, true).then(res => {
-                if (res.code == 1) {
-                    let nodefileitem = e.parentNode.parentNode.parentNode;
-                    let nodefilelist = nodefileitem.parentNode;
-                    nodefilelist.removeChild(nodefileitem);
-
-                    if (nodefilelist.children.length == 0) {
-                        nodefilelist.style.setProperty('display', 'none', 'important');
+        function deleteFile() {
+            function deleteF(event) {
+                request("/note/delFile?noteid=" + noteid + "&fileid=" + fileid, "post", {}, true).then(res => {
+                    if (res.code == 1) {
+                        e.parentNode.removeChild(e);
+                    } else {
+                        that.showToast(res.message || '操作失败');
                     }
-                } else {
-                    that.showToast(res.message || '操作失败');
-                }
-            }).catch(res => {
+                }).catch(res => {
 
-            })
+                })
+            }
+            showModelYesNo("确认删除文件？", deleteF);
         }
-        showModelYesNo("确认删除文件？", deleteF);
+
+        showModelFile(e.innerText, downloadFile, deleteFile)
     }
+
 
     function fndeleteClick(e) {
         let nodeContentP = e.parentNode.parentNode;
@@ -524,7 +531,7 @@
     }
 
     function showModelYesNo(msg, funYes) {
-        let nodeModel = document.getElementById("exampleModalCenter");
+        let nodeModel = document.getElementById("exampleModalDeleteNote");
         var modalBodyInput = nodeModel.querySelector('.modal-body')
         modalBodyInput.innerText = msg;
 
@@ -540,6 +547,38 @@
 
         let node = document.getElementsByClassName("modal_ok")[0];
         node.addEventListener('click', _clickYes)
+        _myModal.show();
+    }
+
+    function showModelFile(msg, funDownload, funDelete) {
+        let nodeModel = document.getElementById("exampleModalFile");
+        var modalBodyInput = nodeModel.querySelector('.modal-body')
+        modalBodyInput.innerText = msg;
+
+        function _clickDownload(event) {
+            _myModal.hide();
+            funDownload(event);
+        }
+
+
+        function _clickDelete(event) {
+            _myModal.hide();
+            funDelete(event);
+        }
+
+        let nodeDownload = document.getElementsByClassName("modal_Download")[0];
+        let nodeDelete = document.getElementsByClassName("modal_Delete")[0];
+
+        var _myModal = new bootstrap.Modal(nodeModel);
+        nodeModel.addEventListener('hidden.bs.modal', function (event) {
+            nodeDownload.removeEventListener('click', _clickDownload);
+            nodeDelete.removeEventListener('click', _clickDelete);
+        })
+
+
+        nodeDownload.addEventListener('click', _clickDownload)
+        nodeDelete.addEventListener('click', _clickDelete)
+
         _myModal.show();
     }
 
@@ -686,6 +725,15 @@
             content: none;
         }
 
+    .reinput {
+        background-color: #f8f9fa;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-radius: 5px;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        margin-left: 10px;
+    }
 
     .moreTool {
         align-items: center;
@@ -759,6 +807,7 @@
     .noteTime {
         line-height: 25px;
         height: 25px;
+        white-space: nowrap;
     }
 
     .tags {
@@ -776,6 +825,7 @@
     }
 
     .content {
+        margin-top: 10px;
         overflow-wrap: break-word;
         line-height: 22px;
     }

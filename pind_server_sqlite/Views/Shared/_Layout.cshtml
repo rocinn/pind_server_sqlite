@@ -30,7 +30,8 @@
     <div aria-live="polite" aria-atomic="true" id="toastsP" class="d-flex justify-content-center align-items-center w-100">
     </div>
 
-    <div class="modal fade" id="exampleModalCenter" tabindex="-1" aria-labelledby="exampleModalCenterTitle" style="display: none;" aria-hidden="true">
+    <div class="modal fade" id="exampleModalDeleteNote" tabindex="-1" aria-labelledby="exampleModalCenterTitle" style="display: none;" aria-hidden="true">
+        @*<div class="modal-dialog modal-dialog-centered">*@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -43,14 +44,32 @@
                     </p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">否</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-primary modal_ok">确定</button>
                 </div>
             </div>
         </div>
     </div>
 
-    
+    <div class="modal fade" id="exampleModalFile" tabindex="-1" aria-labelledby="exampleModalCenterTitle" style="display: none;" aria-hidden="true">
+        @*<div class="modal-dialog modal-dialog-centered">*@
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p></p>
+                </div>
+                <div class="modal-footer filefooter">
+                    <button class="modal_Download btn btn-primary">下载</button>
+                    <button class="modal_Delete btn btn-info">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="container body-content">
         @RenderBody()
     </div>
@@ -78,6 +97,19 @@
         #toastsP {
             position: absolute;
             flex-flow: column;
+        }
+
+        .filefooter {
+            display: flex;
+        }
+
+        .modal_Download {
+            flex: 1;
+        }
+
+        .modal_Delete {
+            flex: 1;
+            margin-left: 10px;
         }
     </style>
 </body>
