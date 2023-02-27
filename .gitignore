@@ -3,5 +3,6 @@
 *\obj
 *\logs
 *\pind.db
-\.vs
 *\pindfiles
+*\app.publish
+.vs/
