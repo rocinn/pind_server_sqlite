@@ -148,6 +148,39 @@ namespace pind_server_sqlite.Controllers
         }
 
         [HttpPost]
+        [Route("note/upfilecheck")]
+        public IHttpActionResult uploadNoteFileCheck(JObject obj)
+        {
+            if (obj == null)
+                throw new CustomException("invalid request");
+            Request.Properties.TryGetValue("userid", out Object userid);
+            string noteid = obj["noteid"]?.ToString();
+            string name = obj["name"]?.ToString();
+            string type = obj["type"]?.ToString();
+            string md5base64 = obj["md5base64"]?.ToString();
+            string strSize = obj["size"]?.ToString();
+            int size = 0;
+            if (!string.IsNullOrWhiteSpace(strSize))
+            {
+                bool isok = int.TryParse(strSize, out size);
+            }
+
+            int id = 0;
+            string relativePath = FileHelper.checkFileExist(md5base64);
+            if (string.IsNullOrWhiteSpace(relativePath))
+            {
+
+            }
+            else
+            {
+                id = SqliteHelper.GetInstance().fnAddNoteFileInfo(Convert.ToInt32(userid), Convert.ToInt32(noteid), name, type, size, relativePath, md5base64);
+            }
+
+
+            return Json(new { code = 1, data = new { id = id } });
+        }
+
+        [HttpPost]
         [Route("note/upfile")]
         public IHttpActionResult uploadNoteFile(JObject obj)
         {

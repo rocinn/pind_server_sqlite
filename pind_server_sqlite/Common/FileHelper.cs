@@ -30,6 +30,22 @@ namespace pind_server_sqlite.Common
             return m_strRelativePath + "/" + md5;
         }
 
+        public static string checkFileExist(string md5)
+        {
+            string folder = HttpRuntime.AppDomainAppPath + m_strRelativePath;
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+            string filepath = folder + "/" + md5;
+            if (!File.Exists(filepath))
+            {
+                return "";
+            }
+
+            return m_strRelativePath + "/" + md5;
+        }
+
         public static string GetFileBase64(string relativePath)
         {
             string content = string.Empty;

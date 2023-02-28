@@ -42,6 +42,71 @@
     //var toolHeight_input = document.getElementsByClassName('tool')[0].clientHeight;
     var toolHeight_input = 25;
 
+    var m_pinddb;
+    var m_requestdb = window.indexedDB.open("pind");
+    m_requestdb.onerror = function (event) {
+        console.log('数据库打开报错');
+    };
+    m_requestdb.onsuccess = function (event) {
+        m_pinddb = m_requestdb.result;
+        console.log('数据库打开成功');
+    };
+    m_requestdb.onupgradeneeded = function (event) {
+        m_pinddb = event.target.result;
+        var fileStore;
+        if (!m_pinddb.objectStoreNames.contains('files')) {
+            fileStore = m_pinddb.createObjectStore('files', { autoIncrement: true });
+            fileStore.createIndex('md5', 'md5', { unique: true });
+        }
+    }
+    function addFile(name, md5, base64) {
+        var transaction = m_pinddb.transaction(['files'], 'readwrite')
+        var objectStore = transaction.objectStore('files')
+
+        var indexmd5 = objectStore.index('files_md5');
+        var request1 = indexmd5.get(md5);
+        request1.onerror = function (event) {
+            console.log('file事务失败');
+        };
+
+        request1.onsuccess = function (event) {
+            if (request1.result) {
+                console.log('已存在file，不写db');
+            } else {
+                console.log('未获得file');
+
+                var request = objectStore.add({ name, md5, base64, rtime: new Date() });
+                request.onsuccess = function (event) {
+                    console.log('file写入成功');
+                };
+                request.onerror = function (event) {
+                    console.log('file写入失败');
+                }
+            }
+        };
+    }
+    function readFile(md5, callback) {
+        var transaction = m_pinddb.transaction(['files']);
+        var objectStore = transaction.objectStore('files');
+
+        var indexmd5 = objectStore.index('files_md5');
+        var request = indexmd5.get(md5);
+
+        request.onerror = function (event) {
+            console.log('file事务失败');
+        };
+
+        request.onsuccess = function (event) {
+            if (request.result) {
+
+            } else {
+                console.log('未获得file');
+            }
+
+            callback(request.result)
+        };
+    }
+
     function fninputfocus() {
         m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "flex";
         m_inputtool_display = "flex";
@@ -97,42 +162,68 @@
         read.readAsDataURL(fileData);
         read.onload = (er) => {
 
-            request("/note/upfile", "post", {
+            let md5base64 = md5(read.result)
+
+            function fun(fileid) {
+                let nodefilelist = e.parentNode.parentNode.parentNode.getElementsByClassName("filelist")[0];
+                nodefilelist.style.setProperty('display', 'block', 'important');
+
+                let nodefileitem = document.createElement("div");
+                nodefileitem.setAttribute("class", "text-truncate")
+
+                let nodetext = document.createElement("text");
+                nodetext.setAttribute("class", "fileitem")
+                nodetext.setAttribute("data-noteid", fid)
+                nodetext.setAttribute("data-fileid", fileid)
+                nodetext.setAttribute("data-md5", md5base64)
+                nodetext.setAttribute("onclick", 'fnclickFile(this)')
+                nodetext.innerText = fileData.name
+
+                nodefileitem.appendChild(nodetext);
+                nodefilelist.appendChild(nodefileitem);
+
+                addFile(fileData.name, md5base64, read.result);
+            }
+
+            request("/note/upfilecheck", "post", {
                 noteid: fid,
                 name: fileData.name,
                 type: fileData.type,
                 size: fileData.size,
-                base64: read.result
-            }, true).then(res => {
-                if (res.code == 1) {
+                md5base64: md5base64
+            }, true).then(res1 => {
+                if (res1.code == 1) {
+                    if (res1.data.id > 0) {
+                        fun(res1.data.id)
+                        showToast("上传成功✅");
+                    } else {
+                        request("/note/upfile", "post", {
+                            noteid: fid,
+                            name: fileData.name,
+                            type: fileData.type,
+                            size: fileData.size,
+                            base64: read.result
+                        }, true).then(res => {
+                            if (res.code == 1 && res.data.id > 0) {
+                                fun(res.data.id)
+                                showToast("上传成功✅");
+                            } else {
+                                showToast(res.data.message || "上传失败❌");
+                            }
 
-                    let nodefilelist = e.parentNode.parentNode.parentNode.getElementsByClassName("filelist")[0];
-                    nodefilelist.style.setProperty('display', 'block', 'important');
+                        }).catch(res => {
+                            showToast("上传文件出现错误");
+                        })
+                    }
 
-                    let nodefileitem = document.createElement("div");
-                    nodefileitem.setAttribute("class", "text-truncate")
-
-                    let nodetext = document.createElement("text");
-                    nodetext.setAttribute("class", "fileitem")
-                    nodetext.setAttribute("data-noteid", fid)
-                    nodetext.setAttribute("data-fileid", res.data.id)
-                    nodetext.setAttribute("data-md5", md5(read.result))
-                    nodetext.setAttribute("onclick", 'fnclickFile(this)')
-                    nodetext.innerText = fileData.name
-
-                    nodefileitem.appendChild(nodetext);
-                    nodefilelist.appendChild(nodefileitem);
-
-                    showToast("上传成功✅");
-
-                    //m_window.localStorage.setItem("file_" + _filemd5, JSON.stringify({ "base64": read.result, "name": fileData.name }))
                 } else {
                     showToast(res.data.message || "上传失败❌");
                 }
-
             }).catch(res => {
-
+                showToast("上传文件出现错误");
             })
+
+
         }
     }
 
@@ -422,36 +513,37 @@
 
         function downloadFile() {
 
-            //let localStorageFileInfo = m_window.localStorage.getItem("file_" + md5file)
-            //if (!localStorageFileInfo) {
-            request("/note/dlfile", "get", {
-                noteid: noteid,
-                fileid: fileid
-            }, true).then(res => {
-                //let _filemd5 = md5(res.data.base64)
-                //m_window.localStorage.setItem("file_" + _filemd5, JSON.stringify({ "base64": res.data.base64, "name": res.data.name }))
+            readFile(md5file, function (e) {
+                if (e) {
+                    console.log("走了本地存储")
+                    const a = document.createElement("a");
+                    a.style.dispaly = 'none';
+                    a.href = e.base64;
+                    a.download = e.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } else {
+                    request("/note/dlfile", "get", {
+                        noteid: noteid,
+                        fileid: fileid
+                    }, true).then(res => {
+                        if (m_pinddb) {
+                            addFile(res.data.name, md5(res.data.base64), res.data.base64);
+                        }
 
-                const a = document.createElement("a");
-                a.style.dispaly = 'none';
-                a.href = res.data.base64;
-                a.download = res.data.name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }).catch(res => {
+                        const a = document.createElement("a");
+                        a.style.dispaly = 'none';
+                        a.href = res.data.base64;
+                        a.download = res.data.name;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }).catch(res => {
 
+                    })
+                }
             })
-            //} else {
-            //    console.log("走了本地存储")
-            //    let _file = JSON.parse(localStorageFileInfo);
-            //    const a = document.createElement("a");
-            //    a.style.dispaly = 'none';
-            //    a.href = _file.base64;
-            //    a.download = _file.name;
-            //    document.body.appendChild(a);
-            //    a.click();
-            //    document.body.removeChild(a);
-            //}
         }
 
         function deleteFile() {
