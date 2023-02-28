@@ -59,11 +59,11 @@
             fileStore.createIndex('md5', 'md5', { unique: true });
         }
     }
-    function addFile(name, md5, base64) {
+    function addFile(name, md5, base64, size) {
         var transaction = m_pinddb.transaction(['files'], 'readwrite')
         var objectStore = transaction.objectStore('files')
 
-        var indexmd5 = objectStore.index('files_md5');
+        var indexmd5 = objectStore.index('md5');
         var request1 = indexmd5.get(md5);
         request1.onerror = function (event) {
             console.log('file事务失败');
@@ -75,7 +75,7 @@
             } else {
                 console.log('未获得file');
 
-                var request = objectStore.add({ name, md5, base64, rtime: new Date() });
+                var request = objectStore.add({ name, md5, base64, size, rtime: new Date() });
                 request.onsuccess = function (event) {
                     console.log('file写入成功');
                 };
@@ -89,7 +89,7 @@
         var transaction = m_pinddb.transaction(['files']);
         var objectStore = transaction.objectStore('files');
 
-        var indexmd5 = objectStore.index('files_md5');
+        var indexmd5 = objectStore.index('md5');
         var request = indexmd5.get(md5);
 
         request.onerror = function (event) {
@@ -104,6 +104,14 @@
             }
 
             callback(request.result)
+        };
+    }
+    function removeFile() {
+        var request = m_pinddb.transaction(['files'], 'readwrite')
+            .objectStore('files').clear()
+
+        request.onsuccess = function (event) {
+            console.log('filedb数据删除成功');
         };
     }
 
@@ -182,7 +190,7 @@
                 nodefileitem.appendChild(nodetext);
                 nodefilelist.appendChild(nodefileitem);
 
-                addFile(fileData.name, md5base64, read.result);
+                addFile(fileData.name, md5base64, fileData.size,  read.result);
             }
 
             request("/note/upfilecheck", "post", {
@@ -278,6 +286,7 @@
 
     function fnonlogout() {
         request("/user/logout", "post", {}, true).then(res => {
+            removeFile();
             location.reload();
         }).catch(res => {
         })
@@ -529,7 +538,7 @@
                         fileid: fileid
                     }, true).then(res => {
                         if (m_pinddb) {
-                            addFile(res.data.name, md5(res.data.base64), res.data.base64);
+                            addFile(res.data.name, md5(res.data.base64), res.data.size, res.data.base64);
                         }
 
                         const a = document.createElement("a");

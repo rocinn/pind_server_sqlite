@@ -220,7 +220,7 @@ namespace pind_server_sqlite.Controllers
 
             string base64 = FileHelper.GetFileBase64(dr["relativePath"].ToString());
 
-            return Json(new { code = 1, data = new { name = dr["name"], type = dr["type"], base64 = base64 } });
+            return Json(new { code = 1, data = new { name = dr["name"], type = dr["type"], size = dr["size"], base64 = base64 } });
         }
 
         [HttpPost]
