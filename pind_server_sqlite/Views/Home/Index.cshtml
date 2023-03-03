@@ -190,7 +190,7 @@
                 nodefileitem.appendChild(nodetext);
                 nodefilelist.appendChild(nodefileitem);
 
-                addFile(fileData.name, md5base64, fileData.size,  read.result);
+                addFile(fileData.name, md5base64, read.result, fileData.size);
             }
 
             request("/note/upfilecheck", "post", {
@@ -538,7 +538,7 @@
                         fileid: fileid
                     }, true).then(res => {
                         if (m_pinddb) {
-                            addFile(res.data.name, md5(res.data.base64), res.data.size, res.data.base64);
+                            addFile(res.data.name, md5(res.data.base64), res.data.base64, res.data.size);
                         }
 
                         const a = document.createElement("a");
