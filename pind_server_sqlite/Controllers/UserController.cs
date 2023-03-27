@@ -15,6 +15,24 @@ namespace pind_server_sqlite.Controllers
     public class UserController : ApiController
     {
         [HttpPost]
+        [Route("user/login")]
+        public IHttpActionResult Login(string name, string pwd)
+        {
+            string acctoken = SqliteHelper.GetInstance().fnLogin(name, pwd);
+            HttpCookie cookie = new HttpCookie("accesstoken", acctoken)
+            {
+                Expires = DateTime.Now.AddDays(1),
+                Secure = true,
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax
+            };
+
+            HttpContext.Current.Response.Cookies.Add(cookie);
+
+            return Json(new { code = 1, data = new { }, message = "ok" });
+        }
+
+        [HttpPost]
         [Route("user/logout")]
         public IHttpActionResult Logout()
         {

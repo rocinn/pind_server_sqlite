@@ -25,11 +25,10 @@
     </div>
 </div>
 
-<div id="empty" style="font-size: -webkit-xxx-large; text-align: center; height: 70px; display: none; margin-top: 100px; color: #bebebe;">╮(╯▽╰)╭</div>
+<div id="empty" style="font-size: -webkit-xxx-large; text-align: center; height: 70px; display: none; margin-top: 100px; color: #bebebe;">空空如也</div>
 
 
-<div id="notelist">
-</div>
+<div id="notelist"></div>
 
 
 
@@ -64,22 +63,22 @@
         var objectStore = transaction.objectStore('files')
 
         var indexmd5 = objectStore.index('md5');
-        var request1 = indexmd5.get(md5);
-        request1.onerror = function (event) {
+        var rdb1 = indexmd5.get(md5);
+        rdb1.onerror = function (event) {
             console.log('file事务失败');
         };
 
-        request1.onsuccess = function (event) {
-            if (request1.result) {
+        rdb1.onsuccess = function (event) {
+            if (rdb1.result) {
                 console.log('已存在file，不写db');
             } else {
                 console.log('未获得file');
 
-                var request = objectStore.add({ name, md5, base64, size, rtime: new Date() });
-                request.onsuccess = function (event) {
+                var rdb = objectStore.add({ name, md5, base64, size, rtime: new Date() });
+                rdb.onsuccess = function (event) {
                     console.log('file写入成功');
                 };
-                request.onerror = function (event) {
+                rdb.onerror = function (event) {
                     console.log('file写入失败');
                 }
             }
@@ -90,27 +89,27 @@
         var objectStore = transaction.objectStore('files');
 
         var indexmd5 = objectStore.index('md5');
-        var request = indexmd5.get(md5);
+        var rdb = indexmd5.get(md5);
 
-        request.onerror = function (event) {
+        rdb.onerror = function (event) {
             console.log('file事务失败');
         };
 
-        request.onsuccess = function (event) {
-            if (request.result) {
+        rdb.onsuccess = function (event) {
+            if (rdb.result) {
 
             } else {
                 console.log('未获得file');
             }
 
-            callback(request.result)
+            callback(rdb.result)
         };
     }
     function removeFile() {
-        var request = m_pinddb.transaction(['files'], 'readwrite')
+        var rdb = m_pinddb.transaction(['files'], 'readwrite')
             .objectStore('files').clear()
 
-        request.onsuccess = function (event) {
+        rdb.onsuccess = function (event) {
             console.log('filedb数据删除成功');
         };
     }
@@ -199,7 +198,7 @@
                 type: fileData.type,
                 size: fileData.size,
                 md5base64: md5base64
-            }, true).then(res1 => {
+            }).then(res1 => {
                 if (res1.code == 1) {
                     if (res1.data.id > 0) {
                         fun(res1.data.id)
@@ -211,7 +210,7 @@
                             type: fileData.type,
                             size: fileData.size,
                             base64: read.result
-                        }, true).then(res => {
+                        }).then(res => {
                             if (res.code == 1 && res.data.id > 0) {
                                 fun(res.data.id)
                                 showToast("上传成功✅");
@@ -219,19 +218,13 @@
                                 showToast(res.data.message || "上传失败❌");
                             }
 
-                        }).catch(res => {
-                            showToast("上传文件出现错误");
                         })
                     }
 
                 } else {
                     showToast(res.data.message || "上传失败❌");
                 }
-            }).catch(res => {
-                showToast("上传文件出现错误");
             })
-
-
         }
     }
 
@@ -239,56 +232,10 @@
         e.parentNode.getElementsByClassName("filepindupload")[0].click();
     }
 
-    function request(url, method, data, isshowloading = false, loadingtime = 0) {
-        let that = this;
-        return new Promise(function (resolve, reject) {
-            that.fnLoading(isshowloading);
-            let d1 = new Date();
-            method = method.toLowerCase();
-            if (method == "get") {
-                let getParas = "";
-                for (var i = 0; i < data.length; i++) {
-                    getParas += ("&" + data[i].text + "=" + data[i].value);
-                }
-                if (getParas) {
-                    url += ("?" + getParas.substring(1, getParas.length - 1));
-                }
-            } else if (method != "post") {
-                reject({ code: -1, message: "不支持的请求" })
-            }
-            $.ajax({
-                type: method,
-                url: url,
-                data: data,
-                success: function (res) {
-                    resolve(res);
-                },
-                error: function (res) {
-                    that.showToast(res.statusText, true);
-                    reject(res)
-                },
-                complete: function () {
-                    if (isshowloading) {
-                        let d2 = new Date();
-                        let cost = parseInt(d2 - d1)
-                        if (cost < loadingtime) {
-                            setTimeout(function () {
-                                that.fnLoading(false);
-                            }, loadingtime - cost);
-                        } else {
-                            that.fnLoading(false);
-                        }
-                    }
-                }
-            });
-        });
-    }
-
     function fnonlogout() {
-        request("/user/logout", "post", {}, true).then(res => {
+        request("/user/logout", "post", {}).then(res => {
             removeFile();
             location.reload();
-        }).catch(res => {
         })
     }
 
@@ -377,7 +324,7 @@
                 htmlcontent: nodeReInput.innerHTML,
                 content: nodeReInput.innerText,
                 uTime: uTime
-            }, true).then(res => {
+            }).then(res => {
                 if (res && res.code == 1) {
                     nodeReEdit.style.display = "none";
                     nodeContentP.style.display = "block";
@@ -389,8 +336,6 @@
                 } else {
                     that.showToast((res ? res.message : "") || '操作失败');
                 }
-            }).catch(res => {
-
             }).finally(fin => {
                 e.removeAttribute("disabled");
             })
@@ -406,7 +351,7 @@
                 guid: guid(),
                 htmlcontent: _htmlcontent,
                 content: _content
-            }, true).then(res => {
+            }).then(res => {
                 if (res && res.code == 1) {
                     m_cha_height = m_nodeinput.clientHeight - 45
                     m_nodeinput.innerHTML = "";
@@ -418,8 +363,6 @@
                 } else {
                     that.showToast((res ? res.message : "") || '操作失败');
                 }
-            }).catch(res => {
-
             }).finally(fin => {
                 e.removeAttribute("disabled");
             })
@@ -435,7 +378,7 @@
 
     function fnGetNotes() {
         let that = this;
-        request("/note/get", "get", {}, true, 800).then(res => {
+        request("/note/get", "get", {}).then(res => {
             if (res && res.code == 1) {
                 m_nodelist.innerHTML = "";
                 for (var i in res.data.arrNote) {
@@ -447,9 +390,7 @@
             } else {
                 that.showToast(res.message || '操作失败');
             }
-        }).catch(res => {
-
-        });
+        })
     }
 
     function fnInsertNote(note, isfirst = false) {
@@ -536,7 +477,7 @@
                     request("/note/dlfile", "get", {
                         noteid: noteid,
                         fileid: fileid
-                    }, true).then(res => {
+                    }).then(res => {
                         if (m_pinddb) {
                             addFile(res.data.name, md5(res.data.base64), res.data.base64, res.data.size);
                         }
@@ -548,8 +489,6 @@
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
-                    }).catch(res => {
-
                     })
                 }
             })
@@ -557,14 +496,12 @@
 
         function deleteFile() {
             function deleteF(event) {
-                request("/note/delFile?noteid=" + noteid + "&fileid=" + fileid, "post", {}, true).then(res => {
+                request("/note/delFile?noteid=" + noteid + "&fileid=" + fileid, "post", {}).then(res => {
                     if (res.code == 1) {
                         e.parentNode.removeChild(e);
                     } else {
                         that.showToast(res.message || '操作失败');
                     }
-                }).catch(res => {
-
                 })
             }
             showModelYesNo("确认删除文件？", deleteF);
@@ -580,14 +517,12 @@
         let fid = nodeNote.getAttribute("data-fid");
 
         function deleteNote(event) {
-            request("/note/del", "post", { fid: fid }, true).then(res => {
+            request("/note/del", "post", { fid: fid }).then(res => {
                 if (res.code == 1) {
                     nodeNote.parentNode.removeChild(nodeNote);
                 } else {
                     that.showToast(res.message || '操作失败');
                 }
-            }).catch(res => {
-
             })
         }
         showModelYesNo("确认删除笔记？", deleteNote);
@@ -683,36 +618,7 @@
         _myModal.show();
     }
 
-    function showToast(msg, isError = false) {
-        let ndoeToastsP = document.getElementById("toastsP");
-        let node = document.createElement("div");
-        node.setAttribute("class", "toast");
-        node.setAttribute("role", "alert");
-        node.setAttribute("aria-live", "assertive");
-        node.setAttribute("aria-atomic", true);
-        if (ndoeToastsP.children.length > 0) {
-            node.style.setProperty("top", ndoeToastsP.children[ndoeToastsP.children.length - 1].offsetTop + 47 + 5 + "px");
-        } else {
-            node.style.setProperty("top", "0px");
-        }
-        node.style.setProperty("position", "absolute");
-        node.style.setProperty("z-index", "999");
-        node.style.setProperty("background-color", "white");
-        node.style.setProperty("display", "flex");
-        node.style.setProperty("align-items", "center");
-        if (isError) {
-            node.style.setProperty("color", "red");
-        }
 
-        node.innerHTML = "<div class='toast-body'>Hello, world! This is a toast message.</div><button type='button' class='btn-close ms-auto me-2' data-bs-dismiss='toast' aria-label='Close'></button>";
-        node.getElementsByClassName("toast-body")[0].innerText = msg;
-        ndoeToastsP.appendChild(node);
-        node.addEventListener('hidden.bs.toast', function () {
-            node.parentNode.removeChild(node);
-        })
-
-        new bootstrap.Toast(node, { delay: 2500 }).show();
-    }
 
     var m_markins = new Mark(m_nodelist)
     var m_nodesearch = document.getElementById("search");
@@ -747,7 +653,7 @@
         m_close.style.display = _st ? "block" : "none";
         var delay = setTimeout(function () {
             m_markins.unmark();
-            request("/note/search", "get", { stext: _st }, true).then(res => {
+            request("/note/search", "get", { stext: _st }).then(res => {
                 m_nodelist.innerHTML = "";
                 for (var i in res.data.arrNote) {
                     let note = res.data.arrNote[i];
@@ -758,8 +664,7 @@
                 if (input) {
                     m_markins.mark(input);
                 }
-            }).catch(res => { });
-
+            })
         }, 500);
         for (var i = 0; i < inputDelay.length; i++) {
             clearTimeout(inputDelay[i])

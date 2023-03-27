@@ -19,8 +19,14 @@ namespace pind_server_sqlite.App_Start
             ILog m_log = LogManager.GetLogger("OnException");
             m_log.Error(actionExecutedContext.Exception.ToString());
             string msg = actionExecutedContext.Exception.Message;
+            int code = -1;
             if (actionExecutedContext.Exception.GetType() == typeof(CustomException))
             {
+
+            }
+            else if (actionExecutedContext.Exception.GetType() == typeof(LoginException))
+            {
+                code = 10000;
 
             }
             else
@@ -30,13 +36,17 @@ namespace pind_server_sqlite.App_Start
 
             var data = new
             {
-                code = -1,
+                code = code,
                 message = msg
             };
 
             var resp = actionExecutedContext.Response ?? new System.Net.Http.HttpResponseMessage();
             resp.StatusCode = System.Net.HttpStatusCode.OK;
             resp.Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+            //if(code == 10000)
+            //{
+            //    resp.Headers.Add("redirect","/login");
+            //}
 
             actionExecutedContext.Exception = null;
             actionExecutedContext.Response = resp;

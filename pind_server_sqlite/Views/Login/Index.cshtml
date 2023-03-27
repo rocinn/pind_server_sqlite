@@ -1,0 +1,48 @@
+﻿
+@{
+    ViewBag.Title = "登录";
+}
+
+<div class="pind">pind笔记</div>
+
+<div class="loginContainer form-horizontal">
+    <input class="form-control Username" id="inputUsername" placeholder="用户名">
+    <input type="password" class="form-control Password" id="inputPassword" placeholder="密码">
+    <button style="margin-top:20px;" id="toLogin" class="btn btn-dark col-5">登录</button>
+</div>
+
+<script>
+document.getElementById("toLogin").addEventListener("click", function (event) {
+        event.preventDefault();
+        let nodeName = document.getElementById("inputUsername");
+        let nodePwd = document.getElementById("inputPassword");
+        request("user/login?name=" + nodeName.value + "&pwd=" + md5(nodePwd.value), "post", {}).then(res => {
+            if (red.code == 1) {
+                window.location = "/home";
+            } else {
+                showToast(res.message || "操作失败");
+            }
+        })
+});
+</script>
+
+<style>
+    .pind {
+        justify-content: center;
+        display: flex;
+        margin-top: 100px;
+        font-weight: bold;
+        font-size: 1rem;
+    }
+
+    .loginContainer {
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        margin-top: 100px;
+    }
+
+    .Password {
+        margin-top: 20px;
+    }
+</style>
