@@ -27,7 +27,7 @@
     </div>
 </div>
 
-<div style="height:160px"></div>
+<div style="height:165px"></div>
 
 <div id="empty" style="font-size: -webkit-xxx-large; text-align: center; height: 70px; display: none; margin-top: 100px; color: #bebebe;">空空如也</div>
 
@@ -700,6 +700,8 @@
                 if (input) {
                     m_markins.mark(input);
                 }
+
+                window.scrollTo(0, 0);
             })
         }, 500);
         for (var i = 0; i < inputDelay.length; i++) {
@@ -745,6 +747,7 @@
         transform: translateX(-50%);*/
         padding-left: 15px;
         padding-right: 15px;
+        padding-bottom: 10px;
     }
 
     .editor {
