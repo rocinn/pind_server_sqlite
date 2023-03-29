@@ -3,41 +3,43 @@
     ViewBag.Title = "Pind";
 }
 
-<div class="editor border border-light rounded-3 bg-light">
-    <div id="input" class="input" contenteditable="true" placeholder="要记些什么呢..." spellcheck="false"></div>
-    <div class="tool">
-        @*<img class="selectImg" src="/Images/bxs-image.png" onclick="fnSelectImage(this)" />*@
+<div class="toppart">
+    <div class="editor border border-light rounded-3 bg-light">
+        <div id="input" class="input" contenteditable="true" placeholder="要记些什么呢..." spellcheck="false"></div>
+        <div class="tool">
+            @*<img class="selectImg" src="/Images/bxs-image.png" onclick="fnSelectImage(this)" />*@
+            <div style="flex:1"></div>
+            <button type="button" class="btn btn-dark btnSelf" onclick="onSaveClick(this)"><img src="/Images/shandian-48.png" style="height: 25px" /></button>
+        </div>
+    </div>
+
+    <div class="moreTool">
+        <button class="btn btn-light btnSelf" onclick="fnonlogout()" style="margin-right:5px;"><img src="~/Images/logout.png" style="height: 25px" /></button>
+        <button class="btn btn-light btnSelf" onclick="fnonrefresh(this)"><img src="~/Images/refresh.png" style="height: 25px" /></button>
+        <div class="d-flex justify-content-center loading" style="margin-left:10px;display:none">
+            <div class="spinner-border" role="status" style="height: 25px; width: 25px"></div>
+        </div>
         <div style="flex:1"></div>
-        <button type="button" class="btn btn-dark btnSelf" onclick="onSaveClick(this)"><img src="/Images/shandian-48.png" style="height: 25px" /></button>
+        <div class="search rounded-2">
+            <input id="search" class="rounded-2" placeholder="搜索" type="text" autocomplete="off" />
+            <button type="button" class="btn-close" style="margin-right:5px;display:none;"></button>
+        </div>
     </div>
 </div>
 
-<div class="moreTool">
-    <button class="btn btn-light btnSelf" onclick="fnonlogout()" style="margin-right:5px;"><img src="~/Images/logout.png" style="height: 25px" /></button>
-    <button class="btn btn-light btnSelf" onclick="fnonrefresh(this)"><img src="~/Images/refresh.png" style="height: 25px" /></button>
-    <div class="d-flex justify-content-center loading" style="margin-left:10px;display:none">
-        <div class="spinner-border" role="status" style="height: 25px; width: 25px"></div>
-    </div>
-    <div style="flex:1"></div>
-    <div class="search rounded-2">
-        <input id="search" class="rounded-2" placeholder="搜索" type="text" autocomplete="off" />
-        <button type="button" class="btn-close" style="margin-right:5px;display:none;"></button>
-    </div>
-</div>
+<div style="height:160px"></div>
 
 <div id="empty" style="font-size: -webkit-xxx-large; text-align: center; height: 70px; display: none; margin-top: 100px; color: #bebebe;">空空如也</div>
 
 
 <div id="notelist"></div>
 
-
-
 <script>
     var m_window = window;
     var m_nodeeditor = document.getElementsByClassName('editor')[0];
     var m_nodeinput = document.getElementById('input');
     var m_nodelist = document.getElementById('notelist');
-    var m_inputtool_display = "";
+    //var m_inputtool_display = "";
     //var toolHeight_input = document.getElementsByClassName('tool')[0].clientHeight;
     var toolHeight_input = 25;
 
@@ -144,36 +146,36 @@
         });
     }
 
-    function fninputfocus() {
-        m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "flex";
-        m_inputtool_display = "flex";
-        m_inputtool_display_timeout = "";
-        m_nodelist.style.height = m_nodelist.clientHeight - toolHeight_input + "px";
-        m_lastNodelistScrollTop = m_nodelist.scrollTop;
-        //alert(m_nodelist.style.height + "|" + m_nodelist.clientHeight + "|" + m_nodeeditor.clientHeight + "|" + document.getElementsByTagName("body")[0].clientHeight)
+    //function fninputfocus() {
+    //m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "flex";
+    //m_inputtool_display = "flex";
+    //m_inputtool_display_timeout = "";
+    //m_nodelist.style.height = m_nodelist.clientHeight - toolHeight_input + "px";
+    //m_lastNodelistScrollTop = m_nodelist.scrollTop;
+    //alert(m_nodelist.style.height + "|" + m_nodelist.clientHeight + "|" + m_nodeeditor.clientHeight + "|" + document.getElementsByTagName("body")[0].clientHeight)
 
-    }
-    m_nodeinput.addEventListener('focus', fninputfocus, false);
+    //}
+    //m_nodeinput.addEventListener('focus', fninputfocus, false);
 
-    let m_inputtool_display_timeout;
-    let m_lastNodelistScrollTop = 0;
-    m_nodelist.addEventListener('scroll', function (e) {
-        //console.log(e.target.scrollTop)
-        if (e.target.scrollTop > m_lastNodelistScrollTop) {
-            // 上滑
-            if (m_inputtool_display == "none")
-                return;
-            if (m_inputtool_display_timeout)
-                return;
-            m_nodeinput.blur();
-            m_inputtool_display_timeout = setTimeout(function () {
-                m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "none";
-                m_inputtool_display = "none";
-                m_nodelist.style.height = m_nodelist.clientHeight + toolHeight_input + "px";
-            }, 200);
-        }
-        m_lastNodelistScrollTop = e.target.scrollTop;
-    }, false);
+    //let m_inputtool_display_timeout;
+    //let m_lastNodelistScrollTop = 0;
+    //m_nodelist.addEventListener('scroll', function (e) {
+    //    //console.log(e.target.scrollTop)
+    //    if (e.target.scrollTop > m_lastNodelistScrollTop) {
+    //        // 上滑
+    //        if (m_inputtool_display == "none")
+    //            return;
+    //        if (m_inputtool_display_timeout)
+    //            return;
+    //        m_nodeinput.blur();
+    //        m_inputtool_display_timeout = setTimeout(function () {
+    //            m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "none";
+    //            m_inputtool_display = "none";
+    //            m_nodelist.style.height = m_nodelist.clientHeight + toolHeight_input + "px";
+    //        }, 200);
+    //    }
+    //    m_lastNodelistScrollTop = e.target.scrollTop;
+    //}, false);
 
     function fnLoading(isshow) {
         if (isshow) {
@@ -284,10 +286,10 @@
             winHeight = document.documentElement.clientHeight;
         }
 
-        var editorH = document.getElementsByClassName("editor")[0].offsetHeight;
-        var moreTollH = document.getElementsByClassName("moreTool")[0].offsetHeight;
-        var h = winHeight - 15 - editorH - moreTollH - 10 - 10;
-        $("#notelist").css("height", h);
+        //var editorH = document.getElementsByClassName("editor")[0].offsetHeight;
+        //var moreTollH = document.getElementsByClassName("moreTool")[0].offsetHeight;
+        //var h = winHeight - 15 - editorH - moreTollH - 10 - 10;
+        //$("#notelist").css("height", h);
     }
 
     setTimeout(function () {
@@ -386,7 +388,7 @@
                     m_cha_height = m_nodeinput.clientHeight - 45
                     m_nodeinput.innerHTML = "";
                     that.fnInsertNote(res.data.arrNote[0], true);
-                    m_nodelist.style.height = m_nodelist.clientHeight + m_cha_height + "px"
+                    //m_nodelist.style.height = m_nodelist.clientHeight + m_cha_height + "px"
 
                     //alert(m_nodelist.style.height + "|" + m_nodelist.clientHeight + "|" + m_nodeeditor.clientHeight + "|" + document.getElementsByTagName("body")[0].clientHeight)
                     document.getElementById("empty").style.display = "none";
@@ -632,7 +634,6 @@
             funDownload(event);
         }
 
-
         function _clickDelete(event) {
             _myModal.hide();
             funDelete(event);
@@ -646,7 +647,6 @@
             nodeDownload.removeEventListener('click', _clickDownload);
             nodeDelete.removeEventListener('click', _clickDelete);
         })
-
 
         nodeDownload.addEventListener('click', _clickDownload)
         nodeDelete.addEventListener('click', _clickDelete)
@@ -736,6 +736,17 @@
         z-index: 1000;
     }
 
+    .toppart {
+        position: fixed;
+        width: 100%;
+        padding-top: 15px;
+        background-color: white;
+        /*        left: 50%;
+        transform: translateX(-50%);*/
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
     .editor {
         padding: 10px 10px 10px 0;
     }
@@ -822,9 +833,12 @@
 
     #notelist {
         margin-top: 10px;
-        overflow-y: auto;
+        /*margin-bottom: 10px;*/
+        /*overflow-y: auto;*/
         flex-direction: column;
         display: flex;
+        padding-left: 15px;
+        padding-right: 15px;
     }
 
         #notelist::-webkit-scrollbar {
@@ -867,9 +881,11 @@
     }
 
     .content {
+        word-wrap: break-word;
         margin-top: 10px;
-        overflow-wrap: break-word;
+        /* overflow-wrap: break-word; */
         line-height: 22px;
+        word-break: break-all;
     }
 
     .filelist {
