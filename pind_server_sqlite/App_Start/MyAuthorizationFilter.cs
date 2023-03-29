@@ -26,19 +26,31 @@ namespace pind_server_sqlite.App_Start
             string _userid = "";
             string _username = "";
 
-            //if (ctrlName.ToLower() == "home" && (actionName.ToLower() == "login"))
-            //{
-            //    //什么都不做
-            //}
-            //else
-            //{
-            //if (filterContext.HttpContext.["username"] == null)
-            //{
-            //    ContentResult contentResult = new ContentResult();
-            //    contentResult.Content = "没有登录";
-            //    //filterContext.Result = contentResult;
-            //    filterContext.Result = new RedirectResult("/Login/Index");
-            //}
+            if (ctrlName.ToLower() == "login")
+            {
+                if (!(accesstokenCookie == null || string.IsNullOrWhiteSpace(accesstokenCookie.Value)))
+                {
+                    string access = accesstokenCookie.Value;
+                    string data = AccessToken.getOriginalData(access);
+                    if (!string.IsNullOrWhiteSpace(data))
+                    {
+                        Dictionary<string, object> dicData = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
+                        if (!(dicData == null || !dicData.ContainsKey("userid") || dicData["userid"] == null || !dicData.ContainsKey("expire") || dicData["expire"] == null))
+                        {
+                            DateTime.TryParse(dicData["expire"].ToString(), out DateTime dee);
+                            if (!(dee < DateTime.Now))
+                            {
+                                _userid = dicData["userid"].ToString();
+                                _username = dicData["name"].ToString();
+
+                                RedirectToHome(filterContext);
+                            }
+                        }
+                    }
+                }
+
+                return;
+            }
 
             if (accesstokenCookie == null || string.IsNullOrWhiteSpace(accesstokenCookie.Value))
             {
@@ -77,8 +89,6 @@ namespace pind_server_sqlite.App_Start
                             //RedirectToLogin(filterContext);
                             //throw new CustomException($"need to login 004: {dee.ToString("yyyy-MM-dd HH:mm:ss")}");
                             //return;
-
-
                         }
                         else
                         {
@@ -91,12 +101,11 @@ namespace pind_server_sqlite.App_Start
 
             HttpContext.Current.Items.Add("userid", _userid);
             HttpContext.Current.Items.Add("name", _username);
-            //}
         }
 
-        private void RedirectToLogin(AuthorizationContext filterContext)
+        private void RedirectToHome(AuthorizationContext filterContext)
         {
-            filterContext.Result = new RedirectResult("/Home/Login");
+            filterContext.Result = new RedirectResult("/Home");
         }
     }
 }

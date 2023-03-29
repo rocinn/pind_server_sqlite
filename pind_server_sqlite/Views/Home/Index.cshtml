@@ -41,6 +41,7 @@
     //var toolHeight_input = document.getElementsByClassName('tool')[0].clientHeight;
     var toolHeight_input = 25;
 
+    //-----------------------
     var m_pinddb;
     var m_requestdb = window.indexedDB.open("pind");
     m_requestdb.onerror = function (event) {
@@ -112,6 +113,35 @@
         rdb.onsuccess = function (event) {
             console.log('filedb数据删除成功');
         };
+    }
+    //-------------------------
+
+    function request_local(url, method, data) {
+        let that = this;
+        let d1 = new Date();
+        let loadingtime = 1000;
+        that.fnLoading(true);
+        function f() {
+            let d2 = new Date();
+            let cost = parseInt(d2 - d1)
+            if (cost < loadingtime) {
+                setTimeout(function () {
+                    that.fnLoading(false);
+                }, loadingtime - cost);
+            } else {
+                that.fnLoading(false);
+            }
+        }
+
+        return new Promise(function (resolve, reject) {
+            request(url, method, data).then(res => {
+                f();
+                resolve(res);
+            }).catch(res => {
+                f();
+                reject(res);
+            });
+        });
     }
 
     function fninputfocus() {
@@ -192,7 +222,7 @@
                 addFile(fileData.name, md5base64, read.result, fileData.size);
             }
 
-            request("/note/upfilecheck", "post", {
+            request_local("/note/upfilecheck", "post", {
                 noteid: fid,
                 name: fileData.name,
                 type: fileData.type,
@@ -204,7 +234,7 @@
                         fun(res1.data.id)
                         showToast("上传成功✅");
                     } else {
-                        request("/note/upfile", "post", {
+                        request_local("/note/upfile", "post", {
                             noteid: fid,
                             name: fileData.name,
                             type: fileData.type,
@@ -233,7 +263,7 @@
     }
 
     function fnonlogout() {
-        request("/user/logout", "post", {}).then(res => {
+        request_local("/user/logout", "post", {}).then(res => {
             removeFile();
             location.reload();
         })
@@ -319,7 +349,7 @@
                 return;
             }
             e.setAttribute("disabled", true);
-            request("/note/upd", "post", {
+            request_local("/note/upd", "post", {
                 fid: fid,
                 htmlcontent: nodeReInput.innerHTML,
                 content: nodeReInput.innerText,
@@ -347,7 +377,7 @@
                 return;
             }
             e.setAttribute("disabled", true);
-            request("/note/add", "post", {
+            request_local("/note/add", "post", {
                 guid: guid(),
                 htmlcontent: _htmlcontent,
                 content: _content
@@ -378,7 +408,7 @@
 
     function fnGetNotes() {
         let that = this;
-        request("/note/get", "get", {}).then(res => {
+        request_local("/note/get", "get", {}).then(res => {
             if (res && res.code == 1) {
                 m_nodelist.innerHTML = "";
                 for (var i in res.data.arrNote) {
@@ -449,7 +479,13 @@
 
         bindPaste(div.getElementsByClassName("reEdit")[0].getElementsByClassName("input")[0]);
     }
-    fnGetNotes();
+
+    window.onload = function () {
+        setTimeout(function () {
+            fnGetNotes();
+            window.scrollTo(0, 1);
+        }, 0)
+    }
 
     function fnclickFile(e) {
         let noteid = e.getAttribute("data-noteid");
@@ -474,7 +510,7 @@
                     a.click();
                     document.body.removeChild(a);
                 } else {
-                    request("/note/dlfile", "get", {
+                    request_local("/note/dlfile", "get", {
                         noteid: noteid,
                         fileid: fileid
                     }).then(res => {
@@ -496,7 +532,7 @@
 
         function deleteFile() {
             function deleteF(event) {
-                request("/note/delFile?noteid=" + noteid + "&fileid=" + fileid, "post", {}).then(res => {
+                request_local("/note/delFile?noteid=" + noteid + "&fileid=" + fileid, "post", {}).then(res => {
                     if (res.code == 1) {
                         e.parentNode.removeChild(e);
                     } else {
@@ -517,7 +553,7 @@
         let fid = nodeNote.getAttribute("data-fid");
 
         function deleteNote(event) {
-            request("/note/del", "post", { fid: fid }).then(res => {
+            request_local("/note/del", "post", { fid: fid }).then(res => {
                 if (res.code == 1) {
                     nodeNote.parentNode.removeChild(nodeNote);
                 } else {
@@ -653,7 +689,7 @@
         m_close.style.display = _st ? "block" : "none";
         var delay = setTimeout(function () {
             m_markins.unmark();
-            request("/note/search", "get", { stext: _st }).then(res => {
+            request_local("/note/search", "get", { stext: _st }).then(res => {
                 m_nodelist.innerHTML = "";
                 for (var i in res.data.arrNote) {
                     let note = res.data.arrNote[i];

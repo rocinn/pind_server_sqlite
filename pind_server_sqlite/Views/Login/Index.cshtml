@@ -17,7 +17,7 @@ document.getElementById("toLogin").addEventListener("click", function (event) {
         let nodeName = document.getElementById("inputUsername");
         let nodePwd = document.getElementById("inputPassword");
         request("user/login?name=" + nodeName.value + "&pwd=" + md5(nodePwd.value), "post", {}).then(res => {
-            if (red.code == 1) {
+            if (res.code == 1) {
                 window.location = "/home";
             } else {
                 showToast(res.message || "操作失败");
