@@ -358,6 +358,8 @@
                 uTime: uTime
             }).then(res => {
                 if (res && res.code == 1) {
+                    localStorage.removeItem("tempinput");
+
                     nodeReEdit.style.display = "none";
                     nodeContentP.style.display = "block";
                     nodeOrInput.innerHTML = nodeReInput.innerHTML;
@@ -385,6 +387,8 @@
                 content: _content
             }).then(res => {
                 if (res && res.code == 1) {
+                    localStorage.removeItem("tempinput");
+
                     m_cha_height = m_nodeinput.clientHeight - 45
                     m_nodeinput.innerHTML = "";
                     that.fnInsertNote(res.data.arrNote[0], true);
@@ -482,10 +486,30 @@
         bindPaste(div.getElementsByClassName("reEdit")[0].getElementsByClassName("input")[0]);
     }
 
+    let isInputZh = false;
     window.onload = function () {
         setTimeout(function () {
+            let strtempinput = localStorage.getItem('tempinput');
+            if (strtempinput) {
+                m_nodeinput.innerHTML = strtempinput;
+                localStorage.removeItem('tempinput')
+            }
             fnGetNotes();
             window.scrollTo(0, 1);
+
+            m_nodeinput.addEventListener('compositionstart', function (e) {
+                isInputZh = true;
+            }, false);
+
+            m_nodeinput.addEventListener('compositionend', function (e) {
+                isInputZh = false;
+                localStorage.setItem("tempinput", m_nodeinput.innerHTML);
+            }, false);
+
+            m_nodeinput.addEventListener('input', function (e) {
+                if (isInputZh) return;
+                localStorage.setItem("tempinput", e.currentTarget.innerHTML);
+            }, false);
         }, 0)
     }
 
@@ -658,20 +682,20 @@
 
     var m_markins = new Mark(m_nodelist)
     var m_nodesearch = document.getElementById("search");
-    var isInputZh = false;
+    var isInputZh_search = false;
     var inputDelay = [];
     m_nodesearch.addEventListener('compositionstart', function (e) {
-        isInputZh = true;
+        isInputZh_search = true;
     }, false);
 
     m_nodesearch.addEventListener('compositionend', function (e) {
-        isInputZh = false;
+        isInputZh_search = false;
         //console.log("compositionend", e.data);
         filter(m_nodesearch.value);
     }, false);
 
     m_nodesearch.addEventListener('input', function (e) {
-        if (isInputZh) return;
+        if (isInputZh_search) return;
         let st = e.currentTarget.value
         //console.log("input", st);
         filter(st);
