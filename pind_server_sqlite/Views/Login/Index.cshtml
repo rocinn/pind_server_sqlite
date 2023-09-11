@@ -8,11 +8,11 @@
 <div class="loginContainer form-horizontal">
     <input class="form-control Username" id="inputUsername" placeholder="用户名">
     <input type="password" class="form-control Password" id="inputPassword" placeholder="密码">
-    <button style="margin-top:20px;" id="toLogin" class="btn btn-dark col-5">登录</button>
+    <button style="margin-top:20px;" id="toLogin" class="form-control btn btn-dark">登录</button>
 </div>
 
 <script>
-document.getElementById("toLogin").addEventListener("click", function (event) {
+    document.getElementById("toLogin").addEventListener("click", function (event) {
         event.preventDefault();
         let nodeName = document.getElementById("inputUsername");
         let nodePwd = document.getElementById("inputPassword");
@@ -23,7 +23,7 @@ document.getElementById("toLogin").addEventListener("click", function (event) {
                 showToast(res.message || "操作失败");
             }
         })
-});
+    });
 </script>
 
 <style>
@@ -44,5 +44,9 @@ document.getElementById("toLogin").addEventListener("click", function (event) {
 
     .Password {
         margin-top: 20px;
+    }
+
+    #toLogin {
+        max-width: 280px;
     }
 </style>
