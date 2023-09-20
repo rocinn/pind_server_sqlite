@@ -46,7 +46,7 @@ create unique index if not exists tuser_index_name on tuser (name);";
 
                 sql = "select * from tuser where name = @name and status = 1";
                 cmd = new SQLiteCommand(sql, con, tran);
-                SetParameters(cmd, "@name", "admin");
+                SetParameters(cmd, "@name", "pind");
                 DataRow dr = GetRow(cmd);
                 if (dr == null)
                 {
