@@ -713,7 +713,7 @@
         var delay = setTimeout(function () {
             m_markins.unmark();
             request_local("/note/search", "get", { stext: _st }).then(res => {
-                if (!inputDelay.contains(delay)) {
+                if (inputDelay.indexOf(delay) < 0) {
                     return;
                 }
                 m_nodelist.innerHTML = "";
@@ -774,6 +774,7 @@
         padding-left: 15px;
         padding-right: 15px;
         padding-bottom: 10px;
+        z-index: 99;
     }
 
     .editor {
