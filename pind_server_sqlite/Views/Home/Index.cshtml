@@ -713,6 +713,9 @@
         var delay = setTimeout(function () {
             m_markins.unmark();
             request_local("/note/search", "get", { stext: _st }).then(res => {
+                if (!inputDelay.contains(delay)) {
+                    return;
+                }
                 m_nodelist.innerHTML = "";
                 for (var i in res.data.arrNote) {
                     let note = res.data.arrNote[i];
