@@ -194,9 +194,11 @@ create index if not exists tnoteFile_index_noteid on tnoteFile (noteid);";
 
         private DataTable GetDT(SQLiteCommand cmd)
         {
+            bool isclose = false;
             SQLiteConnection con = null;
             if (cmd.Connection == null)
             {
+                isclose = true;
                 con = GetConnection();
                 con.Open();
                 cmd.Connection = con;
@@ -209,16 +211,21 @@ create index if not exists tnoteFile_index_noteid on tnoteFile (noteid);";
                 dt.Load(reader);
             }
 
-            Close(con);
+            if (isclose)
+            {
+                Close(con);
+            }
 
             return dt;
         }
 
         private DataRow GetRow(SQLiteCommand cmd)
         {
+            bool isclose = false;
             SQLiteConnection con = null;
             if (cmd.Connection == null)
             {
+                isclose = true;
                 con = GetConnection();
                 con.Open();
                 cmd.Connection = con;
@@ -229,6 +236,11 @@ create index if not exists tnoteFile_index_noteid on tnoteFile (noteid);";
             {
                 //dt = reader.GetSchemaTable();
                 dt.Load(reader);
+            }
+
+            if (isclose)
+            {
+                Close(con);
             }
 
             return dt != null && dt.Rows.Count > 0 ? dt.Rows[0] : null;
@@ -236,9 +248,11 @@ create index if not exists tnoteFile_index_noteid on tnoteFile (noteid);";
 
         private string GetString(SQLiteCommand cmd)
         {
+            bool isclose = false;
             SQLiteConnection con = null;
             if (cmd.Connection == null)
             {
+                isclose = true;
                 con = GetConnection();
                 con.Open();
                 cmd.Connection = con;
@@ -251,22 +265,36 @@ create index if not exists tnoteFile_index_noteid on tnoteFile (noteid);";
                 dt.Load(reader);
             }
 
+            if (isclose)
+            {
+                Close(con);
+            }
+
             return dt != null && dt.Rows.Count > 0 ? dt.Rows[0][0].ToString() : null;
         }
 
         private int ExecuteNonQuery(SQLiteCommand cmd)
         {
+            bool isclose = false;
             SQLiteConnection con = null;
             if (cmd.Connection == null)
             {
+                isclose = true;
                 con = GetConnection();
                 con.Open();
                 cmd.Connection = con;
             }
 
-            return cmd.ExecuteNonQuery();
+            int c = cmd.ExecuteNonQuery();
+
+            if (isclose)
+            {
+                Close(con);
+            }
+
+            return c;
         }
-        
+
         public DataTable fnGetUsers()
         {
             string sql = "select name from tuser where status = 1";
