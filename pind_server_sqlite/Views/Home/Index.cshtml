@@ -118,11 +118,11 @@
     }
     //-------------------------
 
-    function request_local(url, method, data) {
+    function request_local(url, method, data, isshowloading = true) {
         let that = this;
         let d1 = new Date();
         let loadingtime = 1000;
-        that.fnLoading(true);
+        that.fnLoading(isshowloading);
         function f() {
             let d2 = new Date();
             let cost = parseInt(d2 - d1)
@@ -145,37 +145,6 @@
             });
         });
     }
-
-    //function fninputfocus() {
-    //m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "flex";
-    //m_inputtool_display = "flex";
-    //m_inputtool_display_timeout = "";
-    //m_nodelist.style.height = m_nodelist.clientHeight - toolHeight_input + "px";
-    //m_lastNodelistScrollTop = m_nodelist.scrollTop;
-    //alert(m_nodelist.style.height + "|" + m_nodelist.clientHeight + "|" + m_nodeeditor.clientHeight + "|" + document.getElementsByTagName("body")[0].clientHeight)
-
-    //}
-    //m_nodeinput.addEventListener('focus', fninputfocus, false);
-
-    //let m_inputtool_display_timeout;
-    //let m_lastNodelistScrollTop = 0;
-    //m_nodelist.addEventListener('scroll', function (e) {
-    //    //console.log(e.target.scrollTop)
-    //    if (e.target.scrollTop > m_lastNodelistScrollTop) {
-    //        // 上滑
-    //        if (m_inputtool_display == "none")
-    //            return;
-    //        if (m_inputtool_display_timeout)
-    //            return;
-    //        m_nodeinput.blur();
-    //        m_inputtool_display_timeout = setTimeout(function () {
-    //            m_nodelist.parentNode.getElementsByClassName("tool")[0].style.display = "none";
-    //            m_inputtool_display = "none";
-    //            m_nodelist.style.height = m_nodelist.clientHeight + toolHeight_input + "px";
-    //        }, 200);
-    //    }
-    //    m_lastNodelistScrollTop = e.target.scrollTop;
-    //}, false);
 
     function fnLoading(isshow) {
         if (isshow) {
@@ -509,7 +478,12 @@
                 if (isInputZh) return;
                 localStorage.setItem("tempinput", e.currentTarget.innerHTML);
             }, false);
-        }, 0)
+        }, 0);
+
+        setInterval(function () {
+            request_local("/user/check", "get", {} , false).then(res => {
+            })
+        }, 2000);
     }
 
     function fnclickFile(e) {
@@ -570,7 +544,6 @@
 
         showModelFile(e.innerText, downloadFile, deleteFile)
     }
-
 
     function fndeleteClick(e) {
         let nodeContentP = e.parentNode.parentNode;
@@ -677,8 +650,6 @@
         _myModal.show();
     }
 
-
-
     var m_markins = new Mark(m_nodelist)
     var m_nodesearch = document.getElementById("search");
     var isInputZh_search = false;
@@ -737,7 +708,6 @@
         inputDelay = [];
         inputDelay.push(delay);
     }
-
 
 </script>
 

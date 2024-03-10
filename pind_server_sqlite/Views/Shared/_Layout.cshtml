@@ -76,6 +76,7 @@
 
     <script>
         function request(url, method, data) {
+            if (data == null) data = {};
             return new Promise(function (resolve, reject) {
                 method = method.toLowerCase();
                 if (method == "get") {

@@ -6,3 +6,17 @@
 *\pindfiles
 *\app.publish
 .vs/
+*.suo  
+*.user  
+*.vspscc  
+*.vssscc  
+*.pdb  
+*.obj  
+*.ilk  
+*.meta  
+Bin/  
+Obj/  
+*.log  
+*.cache  
+*.bin  
+*.tmp

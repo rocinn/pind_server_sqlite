@@ -32,12 +32,12 @@ namespace pind_server_sqlite.Controllers
             return Json(new { code = 1, data = new { }, message = "ok" });
         }
 
-        //[HttpGet]
-        //[Route("user/checklogin")]
-        //public IHttpActionResult CheckLogin()
-        //{
-
-        //}
+        [HttpGet]
+        [Route("user/check")]
+        public IHttpActionResult CheckLogin()
+        {
+            return Json(new { code = 1, data = new { }, message = "ok" });
+        }
 
         [HttpPost]
         [Route("user/logout")]
