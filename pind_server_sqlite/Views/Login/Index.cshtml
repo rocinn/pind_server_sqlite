@@ -14,6 +14,17 @@
 <script>
     document.getElementById("toLogin").addEventListener("click", function (event) {
         event.preventDefault();
+        fnLogin();
+    });
+
+    document.getElementById("inputPassword").addEventListener("keydown", function (event) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            fnLogin();
+        }
+    });
+
+    function fnLogin() {
         let nodeName = document.getElementById("inputUsername");
         let nodePwd = document.getElementById("inputPassword");
         request("user/login?name=" + nodeName.value + "&pwd=" + md5(nodePwd.value), "post", {}).then(res => {
@@ -23,7 +34,7 @@
                 showToast(res.message || "操作失败");
             }
         })
-    });
+    }
 </script>
 
 <style>
