@@ -1,15 +1,14 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
+using pind_server_sqlite.App_Start;
+using pind_server_sqlite.Common;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Filters;
-using pind_server_sqlite.App_Start;
-using pind_server_sqlite.Common;
-using System.Security.Cryptography;
 
 namespace pind_server_sqlite.Controllers
 {
@@ -82,6 +81,19 @@ namespace pind_server_sqlite.Controllers
                 Dictionary<string, object> dicData = new Dictionary<string, object>();
                 foreach (DataColumn dc in ds.Tables["note"].Columns)
                 {
+                    if (dc.ColumnName == "htmlcontent")
+                    {
+                        if (dr[dc.ColumnName].ToString().ToLower().Contains("secret"))
+                        {
+                            dicData.Add("secret_content", fnHtmlToStar(dr[dc.ColumnName].ToString()));
+                            dicData.Add("secret", true);
+                        }
+                        else
+                        {
+                            dicData.Add("secret_content", dr[dc.ColumnName]);
+                            dicData.Add("secret", false);
+                        }
+                    }
                     dicData.Add(dc.ColumnName, dr[dc.ColumnName]);
                 }
 
@@ -102,6 +114,49 @@ namespace pind_server_sqlite.Controllers
             }
 
             return Json(new { code = 1, data = new { arrNote = lst } });
+        }
+
+        private string fnHtmlToStar(string html)
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            StringBuilder sb = new StringBuilder();
+            string lastTag = "";
+            foreach (var node in doc.DocumentNode.Descendants())
+            {
+                // 输出标签
+                if (node.NodeType == HtmlNodeType.Element)
+                {
+                    sb.Append($"<{node.Name}>");
+                    if (!string.IsNullOrWhiteSpace(lastTag))
+                    {
+                        sb.Append($"</{lastTag}>");
+                    }
+                    lastTag = node.Name;
+                }
+                // 输出文本
+                else if (node.NodeType == HtmlNodeType.Text)
+                {
+                    sb.Append(fnCharToStar(node.InnerText));
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(lastTag))
+            {
+                sb.Append($"</{lastTag}>");
+            }
+
+            return sb.ToString();
+        }
+
+        private string fnCharToStar(string str)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < str.Length; i++)
+            {
+                sb.Append((str[i].Equals('\n') || str[i].Equals('\r') || str[i].Equals('\t')) ? str[i] : '*');
+            }
+
+            return sb.ToString();
         }
 
         [HttpGet]
@@ -125,6 +180,20 @@ namespace pind_server_sqlite.Controllers
                 Dictionary<string, object> dicData = new Dictionary<string, object>();
                 foreach (DataColumn dc in ds.Tables["note"].Columns)
                 {
+                    if (dc.ColumnName == "htmlcontent")
+                    {
+                        if (dr[dc.ColumnName].ToString().ToLower().Contains("secret"))
+                        {
+                            dicData.Add("secret_content", fnHtmlToStar(dr[dc.ColumnName].ToString()));
+                            dicData.Add("secret", true);
+                        }
+                        else
+                        {
+                            dicData.Add("secret_content", dr[dc.ColumnName]);
+                            dicData.Add("secret", false);
+                        }
+                    }
+
                     dicData.Add(dc.ColumnName, dr[dc.ColumnName]);
                 }
 

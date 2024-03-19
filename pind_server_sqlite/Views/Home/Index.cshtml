@@ -301,6 +301,7 @@
     function onSaveClick(e) {
         let that = this;
         let fid = e.getAttribute("data-fid");
+        let secret = e.getAttribute("data-secret");
 
         if (fid) {
             let uTime = e.getAttribute("data-uTime");
@@ -308,8 +309,9 @@
             let nodeNote = nodeReEdit.parentNode;
             let nodeContentP = nodeNote.getElementsByClassName("contentP")[0];
             let nodeOrInput = nodeContentP.getElementsByClassName("content")[0];
+            let nodeHide = nodeContentP.getElementsByClassName("contentHide")[0];
             let nodeReInput = nodeReEdit.getElementsByClassName("input")[0];
-            if (nodeOrInput.innerHTML == nodeReInput.innerHTML) {
+            if (nodeHide.innerHTML == nodeReInput.innerHTML) {
                 nodeReEdit.style.display = "none";
                 nodeContentP.style.display = "block";
                 return;
@@ -331,7 +333,7 @@
 
                     nodeReEdit.style.display = "none";
                     nodeContentP.style.display = "block";
-                    nodeOrInput.innerHTML = nodeReInput.innerHTML;
+                    nodeHide.innerHTML = nodeReInput.innerHTML;
                     nodeNote.setAttribute("data-originContent", nodeReInput.innerText);
                     nodeNote.setAttribute("data-originHtmlContent", nodeReInput.innerHTML);
                     nodeNote.setAttribute("data-uTime", res.data.arrNote[0].uTimeShow);
@@ -409,19 +411,21 @@
         let str = "<div class='contentP'><div class='oprator'>" +
             "<div class='noteTime text-secondary'>" + note["iTimeShow"] + "</div>" +
             "<div style='flex:1'></div>" +
+            "<button class='eye btn btn-light btnSelf' onclick='fntoEyeClick(this)' style='margin-right:5px;'><img src='/Images/eye48.png' style='height: 25px' /></button>" +
             "<button class='file btn btn-light btnSelf' data-fid='" + note["fid"] + "' onclick='fnSelectImage(this)' style='margin-right:5px;'><img src='/Images/file.png' style='height: 25px;' /></button>" +
             "<input style='display: none' type='file' class='filepindupload' data-fid='" + note["fid"] + "' onchange='fnuploadpindfile(this)'/>" +
             "<button class='delete btn btn-light btnSelf' onclick='fndeleteClick(this)' style='margin-right:5px;'><img src='/Images/delete.png' style='height: 25px;' /></button>" +
             "<button class='toedit btn btn-light btnSelf' onclick='fntoEditClick(this)'><img src='/Images/edit.png' style='height: 25px' /></button>" +
             "</div>";
-        str += ("<div class='content'>" + (note["htmlcontent"] || note["content"]) + "</div></div>");
+        str += ("<div class='content'>" + (note["secret_content"] || note["htmlcontent"] || note["content"]) + "</div>");
+        str += ("<div class='contentHide' style='display:none'>" + (note["htmlcontent"] || note["content"]) + "</div></div>");
 
         str += "<div class='reEdit' style='display:none'>" +
 
             "<div class='tool'>" +
             "<div style='flex:1'></div>" +
             "<button class='btn btn-light btnSelf' style='margin-right:5px;' onclick='fnCancelClick(this)'><img src='/Images/cancel.png' style='height: 25px' /></botton>" +
-            "<button type='button' class='btn btn-dark btnSelf' data-fid='" + note["fid"] + "' data-uTime='" + note["uTimeShow"] + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button>" +
+            "<button type='button' class='btn btn-dark btnSelf' data-secret='" + note["secret"] + "' data-fid='" + note["fid"] + "' data-uTime='" + note["uTimeShow"] + "'' onclick='onSaveClick(this)'><img src='/Images/shandian-48.png' style='height: 25px' /></button>" +
             "</div>" +
 
             "<div class='input reinput' contenteditable='true' spellcheck='false'>" + (note["htmlcontent"] || note["content"]) + "</div>" +
@@ -481,7 +485,7 @@
         }, 0);
 
         setInterval(function () {
-            request_local("/user/check", "get", {} , false).then(res => {
+            request_local("/user/check", "get", {}, false).then(res => {
             })
         }, 2000);
     }
@@ -584,6 +588,14 @@
         //}
 
         nodeContentP.style.display = "none";
+    }
+
+    function fntoEyeClick(e) {
+        let nodeContentP = e.parentNode.parentNode;
+        let nodeOrigin = nodeContentP.getElementsByClassName("content")[0];
+        let nodeHide = nodeContentP.getElementsByClassName("contentHide")[0];
+        nodeOrigin.style.display = (nodeOrigin.style.display == "block" || nodeOrigin.style.display == "") ? "none" : "block";
+        nodeHide.style.display = (nodeHide.style.display == "block" || nodeHide.style.display == "") ? "none" : "block";
     }
 
     function fnCancelClick(e) {
