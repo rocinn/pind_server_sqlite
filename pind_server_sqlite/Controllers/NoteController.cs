@@ -121,28 +121,25 @@ namespace pind_server_sqlite.Controllers
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
             StringBuilder sb = new StringBuilder();
-            string lastTag = "";
-            foreach (var node in doc.DocumentNode.Descendants())
+            foreach (var node in doc.DocumentNode.ChildNodes)
             {
                 // 输出标签
                 if (node.NodeType == HtmlNodeType.Element)
                 {
-                    sb.Append($"<{node.Name}>");
-                    if (!string.IsNullOrWhiteSpace(lastTag))
+                    if (node.OuterHtml.ToLower() == "<br>")
                     {
-                        sb.Append($"</{lastTag}>");
+                        sb.Append("<br>");
                     }
-                    lastTag = node.Name;
+                    else
+                    {
+                        sb.Append($"<{node.Name}>{fnHtmlToStar(node.InnerHtml)}</{node.Name}>");
+                    }
                 }
                 // 输出文本
                 else if (node.NodeType == HtmlNodeType.Text)
                 {
                     sb.Append(fnCharToStar(node.InnerText));
                 }
-            }
-            if (!string.IsNullOrWhiteSpace(lastTag))
-            {
-                sb.Append($"</{lastTag}>");
             }
 
             return sb.ToString();
