@@ -334,10 +334,13 @@
                     nodeReEdit.style.display = "none";
                     nodeContentP.style.display = "block";
                     nodeHide.innerHTML = nodeReInput.innerHTML;
+                    if (secret != 'true') {
+                        nodeOrInput.innerHTML = nodeReInput.innerHTML;
+                    }
                     nodeNote.setAttribute("data-originContent", nodeReInput.innerText);
                     nodeNote.setAttribute("data-originHtmlContent", nodeReInput.innerHTML);
-                    nodeNote.setAttribute("data-uTime", res.data.arrNote[0].uTimeShow);
-                    e.setAttribute("data-uTime", res.data.arrNote[0].uTimeShow);
+                    nodeNote.setAttribute("data-uTime", res.data.arrNote[0].uTime);
+                    e.setAttribute("data-uTime", res.data.arrNote[0].uTime);
                 } else {
                     that.showToast((res ? res.message : "") || '操作失败');
                 }
@@ -406,12 +409,12 @@
         div.setAttribute("data-originContent", note["content"]);
         div.setAttribute("data-originHtmlContent", note["htmlcontent"]);
         div.setAttribute("data-fid", note["fid"]);
-        div.setAttribute("data-uTime", note["uTimeShow"]);
+        div.setAttribute("data-uTime", note["uTime"]);
 
         let str = "<div class='contentP'><div class='oprator'>" +
             "<div class='noteTime text-secondary'>" + note["iTimeShow"] + "</div>" +
             "<div style='flex:1'></div>" +
-            "<button class='eye btn btn-light btnSelf' onclick='fntoEyeClick(this)' style='margin-right:5px;'><img src='/Images/eye48.png' style='height: 25px' /></button>" +
+            "<button class='eye btn btn-light btnSelf' onclick='fntoEyeClick(this)' data-secret='" + note["secret"] + "' style='margin-right:5px;'><img src='/Images/eye48.png' style='height: 25px' /></button>" +
             "<button class='file btn btn-light btnSelf' data-fid='" + note["fid"] + "' onclick='fnSelectImage(this)' style='margin-right:5px;'><img src='/Images/file.png' style='height: 25px;' /></button>" +
             "<input style='display: none' type='file' class='filepindupload' data-fid='" + note["fid"] + "' onchange='fnuploadpindfile(this)'/>" +
             "<button class='delete btn btn-light btnSelf' onclick='fndeleteClick(this)' style='margin-right:5px;'><img src='/Images/delete.png' style='height: 25px;' /></button>" +
@@ -591,6 +594,8 @@
     }
 
     function fntoEyeClick(e) {
+        let secret = e.getAttribute("data-secret");
+        if (secret != 'true') return;
         let nodeContentP = e.parentNode.parentNode;
         let nodeOrigin = nodeContentP.getElementsByClassName("content")[0];
         let nodeHide = nodeContentP.getElementsByClassName("contentHide")[0];
