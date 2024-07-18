@@ -21,7 +21,7 @@ namespace pind_server_sqlite.Controllers
             string acctoken = SqliteHelper.GetInstance().fnLogin(name, pwd);
             HttpCookie cookie = new HttpCookie("accesstoken", acctoken)
             {
-                Expires = DateTime.Now.AddDays(1),
+                Expires = DateTime.Now.AddDays(7),
                 Secure = true,
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax
