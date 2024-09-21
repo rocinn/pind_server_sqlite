@@ -556,8 +556,8 @@ select last_insert_rowid();";
             foreach (DataRow dr in dt.Rows)
             {
                 dr["htmlcontent"] = dr["htmlcontent"].ToString();
-                dr["iTimeShow"] = DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm");
-                dr["uTimeShow"] = DateTime.Parse(dr["uTime"].ToString()).ToString("yyyy-MM-dd HH:mm");
+                dr["iTimeShow"] = DateTime.Parse(dr["iTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
+                dr["uTimeShow"] = DateTime.Parse(dr["uTime"].ToString()).ToString("yyyy-MM-dd HH:mm:ss");
             }
 
             return dt;
